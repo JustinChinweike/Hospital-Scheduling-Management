@@ -1,278 +1,209 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { useAuth } from "../context/AuthContext";
 import { toast } from "../components/ui/use-toast";
-import { LoginCredentials, UserRole } from "../types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Button } from "../components/ui/button";
+import { Label } from "../components/ui/label";
 
-const AuthPage = () => {
+const AuthPage: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+  const { login, register, isAuthenticated } = useAuth();
   
-  // Login state
-  const [loginCredentials, setLoginCredentials] = useState<LoginCredentials>({
-    username: "",
-    password: "",
-  });
+  // Form state
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [registerUsername, setRegisterUsername] = useState("");
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Register state
-  const [registerData, setRegisterData] = useState({
-    username: "",
-    password: "",
-    confirmPassword: "",
-    email: "",
-  });
-
-  // Form validation error state
-  const [errors, setErrors] = useState({
-    username: "",
-    password: "",
-    confirmPassword: "",
-    email: "",
-  });
-
-  const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setLoginCredentials(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setRegisterData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-
-    // Clear error when user types
-    setErrors(prev => ({
-      ...prev,
-      [name]: ""
-    }));
-  };
-
-  const validateRegisterForm = () => {
-    const newErrors = {
-      username: "",
-      password: "",
-      confirmPassword: "",
-      email: "",
-    };
-    let isValid = true;
-
-    if (registerData.username.length < 3) {
-      newErrors.username = "Username must be at least 3 characters";
-      isValid = false;
+  // Redirect if already authenticated
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/");
     }
-
-    if (registerData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-      isValid = false;
-    }
-
-    if (registerData.password !== registerData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-      isValid = false;
-    }
-
-    if (!registerData.email.includes("@")) {
-      newErrors.email = "Please enter a valid email";
-      isValid = false;
-    }
-
-    setErrors(newErrors);
-    return isValid;
-  };
+  }, [isAuthenticated, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(loginCredentials),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Login failed");
+      const success = await login(loginEmail, loginPassword);
+      
+      if (success) {
+        toast({
+          title: "Login Successful",
+          description: "Welcome back!"
+        });
+        navigate("/");
+      } else {
+        toast({
+          title: "Login Failed",
+          description: "Invalid email or password",
+          variant: "destructive"
+        });
       }
-      
-      const data = await response.json();
-      
-      // Store auth token in localStorage
-      localStorage.setItem("authToken", data.token);
-      
-      toast({ title: "Success", description: "Logged in successfully" });
-      navigate("/tasks");
-    } catch (error: any) {
+    } catch (error) {
       toast({
-        title: "Error",
-        description: error.message || "Login failed. Please try again.",
-        variant: "destructive",
+        title: "Login Error",
+        description: "An error occurred during login",
+        variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateRegisterForm()) return;
+    if (!registerUsername || !registerEmail || !registerPassword) {
+      toast({
+        title: "Registration Failed",
+        description: "All fields are required",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsLoading(true);
     
     try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: registerData.username,
-          password: registerData.password,
-          email: registerData.email,
-          role: UserRole.REGULAR // Default to regular user for registration
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Registration failed");
-      }
+      const success = await register(registerUsername, registerEmail, registerPassword);
       
-      toast({ title: "Success", description: "Account created successfully! Please log in." });
-      setActiveTab("login");
-      setLoginCredentials({
-        username: registerData.username,
-        password: "",
-      });
-    } catch (error: any) {
+      if (success) {
+        toast({
+          title: "Registration Successful",
+          description: "Your account has been created!"
+        });
+        navigate("/");
+      } else {
+        toast({
+          title: "Registration Failed",
+          description: "Email already in use",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
       toast({
-        title: "Error",
-        description: error.message || "Registration failed. Please try again.",
-        variant: "destructive",
+        title: "Registration Error",
+        description: "An error occurred during registration",
+        variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <Card className="w-[400px]">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Hospital Scheduler</CardTitle>
+    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">Authentication</CardTitle>
           <CardDescription className="text-center">
             Login or create an account to continue
           </CardDescription>
         </CardHeader>
+        
         <CardContent>
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "register")}>
-            <TabsList className="grid w-full grid-cols-2 mb-6">
+          <Tabs defaultValue="login">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="register">Register</TabsTrigger>
             </TabsList>
-
+            
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-username">Username</Label>
+                  <Label htmlFor="email">Email</Label>
                   <Input
-                    id="login-username"
-                    name="username"
-                    placeholder="Enter your username"
-                    value={loginCredentials.username}
-                    onChange={handleLoginChange}
+                    id="email"
+                    placeholder="Email address"
+                    type="email"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                  </div>
                   <Input
-                    id="login-password"
-                    name="password"
+                    id="password"
+                    placeholder="Password"
                     type="password"
-                    placeholder="Enter your password"
-                    value={loginCredentials.password}
-                    onChange={handleLoginChange}
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full">Login</Button>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Logging in..." : "Login"}
+                </Button>
+                <div className="text-sm text-center text-gray-500">
+                  <p>For testing:</p>
+                  <p>Admin: admin@example.com / password</p>
+                  <p>User: user@example.com / password</p>
+                </div>
               </form>
             </TabsContent>
-
+            
             <TabsContent value="register">
               <form onSubmit={handleRegister} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="register-username">Username</Label>
+                  <Label htmlFor="username">Username</Label>
                   <Input
-                    id="register-username"
-                    name="username"
-                    placeholder="Choose a username"
-                    value={registerData.username}
-                    onChange={handleRegisterChange}
+                    id="username"
+                    placeholder="Username"
+                    value={registerUsername}
+                    onChange={(e) => setRegisterUsername(e.target.value)}
                     required
                   />
-                  {errors.username && (
-                    <p className="text-sm text-red-500">{errors.username}</p>
-                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="register-email">Email</Label>
                   <Input
                     id="register-email"
-                    name="email"
+                    placeholder="Email address"
                     type="email"
-                    placeholder="Enter your email"
-                    value={registerData.email}
-                    onChange={handleRegisterChange}
+                    value={registerEmail}
+                    onChange={(e) => setRegisterEmail(e.target.value)}
                     required
                   />
-                  {errors.email && (
-                    <p className="text-sm text-red-500">{errors.email}</p>
-                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="register-password">Password</Label>
                   <Input
                     id="register-password"
-                    name="password"
+                    placeholder="Password"
                     type="password"
-                    placeholder="Choose a strong password"
-                    value={registerData.password}
-                    onChange={handleRegisterChange}
+                    value={registerPassword}
+                    onChange={(e) => setRegisterPassword(e.target.value)}
                     required
                   />
-                  {errors.password && (
-                    <p className="text-sm text-red-500">{errors.password}</p>
-                  )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="register-confirm-password">Confirm Password</Label>
-                  <Input
-                    id="register-confirm-password"
-                    name="confirmPassword"
-                    type="password"
-                    placeholder="Confirm your password"
-                    value={registerData.confirmPassword}
-                    onChange={handleRegisterChange}
-                    required
-                  />
-                  {errors.confirmPassword && (
-                    <p className="text-sm text-red-500">{errors.confirmPassword}</p>
-                  )}
-                </div>
-                <Button type="submit" className="w-full">Register</Button>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Creating account..." : "Register"}
+                </Button>
               </form>
             </TabsContent>
           </Tabs>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-gray-500">
-            © 2024 Hospital Scheduler. All rights reserved.
-          </p>
+        
+        <CardFooter>
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            onClick={() => navigate("/")}
+          >
+            Back to Home
+          </Button>
         </CardFooter>
       </Card>
     </div>

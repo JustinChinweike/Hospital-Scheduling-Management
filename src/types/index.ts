@@ -2,35 +2,38 @@
 export interface Task {
   id: string;
   title: string;
-  completed: boolean;
   category: string;
+  completed: boolean;
   createdAt: Date;
-}
-
-export enum UserRole {
-  REGULAR = "REGULAR",
-  ADMIN = "ADMIN"
 }
 
 export interface User {
   id: string;
   username: string;
-  password: string; // This will be hashed
   email: string;
-  role: UserRole;
-  createdAt: Date;
-}
-
-export interface LoginCredentials {
-  username: string;
-  password: string;
+  role: "USER" | "ADMIN";
 }
 
 export interface LogEntry {
   id: string;
   userId: string;
-  action: string;
-  entityId: string;
+  action: "CREATE" | "READ" | "UPDATE" | "DELETE";
   entityType: string;
+  entityId: string;
   timestamp: Date;
 }
+
+export interface MonitoredUser {
+  userId: string;
+  username: string;
+  reason: string;
+  detectedAt: Date;
+}
+
+export type Schedule = {
+  id: string;
+  doctorName: string;
+  patientName: string;
+  dateTime: string;
+  department: string;
+};
