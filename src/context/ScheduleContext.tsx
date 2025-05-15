@@ -1,113 +1,202 @@
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Schedule } from "../types";
+import { scheduleAPI } from "../services/api";
+import { useAuth } from "./AuthContext";
+import { toast } from "../components/ui/use-toast";
 
 interface ScheduleContextType {
   schedules: Schedule[];
-  filteredSchedules: Schedule[];
-  setFilterCriteria: React.Dispatch<
-    React.SetStateAction<{
-      doctorName: string;
-      patientName: string;
-      department: string;
-    }>
-  >;
-  addSchedule: (body: Omit<Schedule, "id">) => Promise<void>;
-  updateSchedule: (schedule: Schedule) => Promise<void>;
-  deleteSchedule: (id: string) => Promise<void>;
-  fetchSchedules: () => Promise<void>;
-  getScheduleById: (id: string) => Schedule | undefined;
-  loadNextPage: () => void;
-  autoScheduleEnabled: boolean;
-  toggleAutoSchedule: () => void;
+  loading: boolean;
+  error: string | null;
+  currentPage: number;
+  totalPages: number;
+  filters: Record<string, string>;
+  fetchSchedules: (page?: number, newFilters?: Record<string, string>) => Promise<void>;
+  getScheduleById: (id: string) => Promise<Schedule | null>;
+  createSchedule: (schedule: Omit<Schedule, "id">) => Promise<boolean>;
+  updateSchedule: (id: string, schedule: Partial<Schedule>) => Promise<boolean>;
+  deleteSchedule: (id: string) => Promise<boolean>;
 }
 
 const ScheduleContext = createContext<ScheduleContextType | undefined>(undefined);
 
-// Mock data
-const initialSchedules: Schedule[] = [
-  {
-    id: "1",
-    doctorName: "Dr. Sarah Johnson",
-    patientName: "James Wilson",
-    dateTime: "2024-05-15T10:30:00",
-    department: "Cardiology"
-  },
-  {
-    id: "2",
-    doctorName: "Dr. David Miller",
-    patientName: "Emily Parker",
-    dateTime: "2024-05-16T14:00:00",
-    department: "Neurology"
-  }
-];
-
 export const ScheduleProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [schedules, setSchedules] = useState<Schedule[]>(initialSchedules);
-  const [filterCriteria, setFilterCriteria] = useState({
-    doctorName: "",
-    patientName: "",
-    department: "",
-  });
-  const [page, setPage] = useState(1);
-  const [autoScheduleEnabled, setAutoScheduleEnabled] = useState(true);
+  const { user, isAuthenticated, addLog } = useAuth();
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [filters, setFilters] = useState<Record<string, string>>({});
 
-  // Filtering
-  const filteredSchedules = schedules.filter((s) => {
-    const d = !filterCriteria.doctorName || s.doctorName.toLowerCase().includes(filterCriteria.doctorName.toLowerCase());
-    const p = !filterCriteria.patientName || s.patientName.toLowerCase().includes(filterCriteria.patientName.toLowerCase());
-    const dept = !filterCriteria.department || filterCriteria.department === "all" || s.department === filterCriteria.department;
-    return d && p && dept;
-  });
-
-  const fetchSchedules = async () => {
-    // In a real app, we would fetch from the API
-    console.log("Fetching schedules for page:", page);
-    // No need to do anything for this demo
-  };
-
+  const token = localStorage.getItem("token");
+  
+  // Fetch schedules when authenticated
   useEffect(() => {
-    fetchSchedules();
-  }, [page]);
+    if (isAuthenticated && token) {
+      fetchSchedules();
+    }
+  }, [isAuthenticated]);
 
-  const loadNextPage = () => setPage((p) => p + 1);
-
-  const addSchedule = async (body: Omit<Schedule, "id">) => {
-    const newSchedule: Schedule = {
-      ...body,
-      id: crypto.randomUUID(),
-    };
-    setSchedules(prev => [newSchedule, ...prev]);
+  const fetchSchedules = async (page = 1, newFilters?: Record<string, string>) => {
+    if (!token || !isAuthenticated) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const appliedFilters = newFilters !== undefined ? newFilters : filters;
+      if (newFilters !== undefined) {
+        setFilters(newFilters);
+      }
+      
+      console.log(`Fetching schedules for page: ${page}`);
+      const data = await scheduleAPI.getAll(token, page, appliedFilters);
+      
+      setSchedules(data.data);
+      setCurrentPage(data.currentPage);
+      setTotalPages(data.totalPages);
+      
+      // Log this read operation
+      addLog("READ", "Schedule", "MULTIPLE");
+    } catch (error) {
+      console.error("Failed to fetch schedules:", error);
+      setError("Failed to load schedules. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to load schedules",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateSchedule = async (schedule: Schedule) => {
-    setSchedules(prev => prev.map(s => s.id === schedule.id ? schedule : s));
+  const getScheduleById = async (id: string): Promise<Schedule | null> => {
+    if (!token || !isAuthenticated) return null;
+    
+    try {
+      const schedule = await scheduleAPI.getById(token, id);
+      
+      // Log this read operation
+      addLog("READ", "Schedule", id);
+      
+      return schedule;
+    } catch (error) {
+      console.error(`Failed to fetch schedule ${id}:`, error);
+      toast({
+        title: "Error",
+        description: `Failed to load schedule details`,
+        variant: "destructive"
+      });
+      return null;
+    }
   };
 
-  const deleteSchedule = async (id: string) => {
-    setSchedules(prev => prev.filter(s => s.id !== id));
+  const createSchedule = async (schedule: Omit<Schedule, "id">): Promise<boolean> => {
+    if (!token || !isAuthenticated) return false;
+    
+    try {
+      const newSchedule = await scheduleAPI.create(token, schedule);
+      
+      // Update local state
+      setSchedules(prev => [newSchedule, ...prev]);
+      
+      // Log this create operation
+      addLog("CREATE", "Schedule", newSchedule.id);
+      
+      toast({
+        title: "Success",
+        description: "Schedule created successfully"
+      });
+      
+      return true;
+    } catch (error) {
+      console.error("Failed to create schedule:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create schedule",
+        variant: "destructive"
+      });
+      return false;
+    }
   };
 
-  const getScheduleById = (id: string) => schedules.find(s => s.id === id);
+  const updateSchedule = async (id: string, schedule: Partial<Schedule>): Promise<boolean> => {
+    if (!token || !isAuthenticated) return false;
+    
+    try {
+      const updatedSchedule = await scheduleAPI.update(token, id, schedule);
+      
+      // Update local state
+      setSchedules(prev => 
+        prev.map(s => s.id === id ? { ...s, ...updatedSchedule } : s)
+      );
+      
+      // Log this update operation
+      addLog("UPDATE", "Schedule", id);
+      
+      toast({
+        title: "Success",
+        description: "Schedule updated successfully"
+      });
+      
+      return true;
+    } catch (error) {
+      console.error(`Failed to update schedule ${id}:`, error);
+      toast({
+        title: "Error",
+        description: "Failed to update schedule",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
 
-  const toggleAutoSchedule = () => {
-    setAutoScheduleEnabled(prev => !prev);
+  const deleteSchedule = async (id: string): Promise<boolean> => {
+    if (!token || !isAuthenticated) return false;
+    
+    try {
+      await scheduleAPI.delete(token, id);
+      
+      // Update local state
+      setSchedules(prev => prev.filter(s => s.id !== id));
+      
+      // Log this delete operation
+      addLog("DELETE", "Schedule", id);
+      
+      toast({
+        title: "Success",
+        description: "Schedule deleted successfully"
+      });
+      
+      return true;
+    } catch (error) {
+      console.error(`Failed to delete schedule ${id}:`, error);
+      toast({
+        title: "Error",
+        description: "Failed to delete schedule",
+        variant: "destructive"
+      });
+      return false;
+    }
   };
 
   return (
     <ScheduleContext.Provider
       value={{
         schedules,
-        filteredSchedules,
-        setFilterCriteria,
-        addSchedule,
-        updateSchedule,
-        deleteSchedule,
+        loading,
+        error,
+        currentPage,
+        totalPages,
+        filters,
         fetchSchedules,
         getScheduleById,
-        loadNextPage,
-        autoScheduleEnabled,
-        toggleAutoSchedule,
+        createSchedule,
+        updateSchedule,
+        deleteSchedule
       }}
     >
       {children}

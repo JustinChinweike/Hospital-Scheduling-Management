@@ -1,78 +1,110 @@
 
-# Hospital Scheduling System
+# Hospital Scheduler System
 
-This application is a comprehensive Hospital Scheduling System that meets all requirements for Bronze, Silver, and Gold tier features.
+This project implements a hospital scheduler system with both frontend and backend components.
 
 ## Features
 
-### Bronze Tier
-- **Database Relationships**: One-to-many relationship between users and schedules
-- **Full CRUD Support**: Create, read, update, and delete operations for schedules
-- **Filtering and Sorting**: Filter schedules by doctor, patient, department, and more
-- **ORM Integration**: Uses Sequelize for database operations
+### Bronze Tier Features
+- Database relationships between entities (Users, Schedules, Logs, MonitoredUsers)
+- Full CRUD operations for schedules
+- Filtering and sorting on the schedule list
+- ORM (Sequelize) for database operations
 
-### Silver Tier
-- **Large Dataset**: Populated with 100,000+ records for performance testing
-- **Performance Optimization**: Database indices and query optimization
-- **Complex Queries**: Optimized statistical queries
+### Silver Tier Features
+- Database seeding with 100,000+ entries
+- Performance optimized database with indices
+- Complex query optimization for statistics
 
-### Gold Tier
-- **Authentication System**: Register and login functionality
-- **User Roles**: Admin and regular user roles with proper permissions
-- **Logging System**: Tracks all CRUD operations
-- **Background Monitoring**: Detects suspicious user activity
-- **Admin Dashboard**: View monitored users and system logs
-- **Simulated Attack**: Demonstrates security monitoring capabilities
+### Gold Tier Features
+- User authentication (register/login)
+- User roles (Regular User and Admin)
+- Logging system for all CRUD operations
+- Background monitoring thread that detects suspicious activity
+- Admin dashboard with monitored users list and activity logs
+- Simulated attack scenario
 
-## Project Structure
+## Tech Stack
 
-The project consists of two main parts:
-
-1. **Frontend**: React application with Tailwind CSS and shadcn/UI
-2. **Backend**: Express.js server with PostgreSQL database using Sequelize ORM
+- **Frontend**: React, TypeScript, TailwindCSS, Shadcn UI
+- **Backend**: Node.js, Express, Sequelize ORM
+- **Database**: PostgreSQL
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js
-- PostgreSQL
 
-### Setup
+1. Node.js (v14+)
+2. PostgreSQL database
 
-1. Clone the repository
+### Setup Instructions
 
-2. Setup backend:
-   ```bash
+1. **Setup PostgreSQL database**
+
+   Create a PostgreSQL database named `hospital_scheduler`.
+
+2. **Configure backend environment**
+
+   Update the `.env` file in the `backend` directory with your database credentials.
+
+3. **Install backend dependencies**
+
+   ```
    cd backend
    npm install
-   # Update .env file with your PostgreSQL credentials
-   npm run seed # This will create admin and user accounts and seed the database
+   ```
+
+4. **Seed the database**
+
+   ```
+   npm run seed
+   ```
+
+   This will create:
+   - Initial admin user (email: admin@example.com, password: password)
+   - Initial regular user (email: user@example.com, password: password)
+   - 100,000 sample schedule records
+
+5. **Start the backend server**
+
+   ```
    npm run dev
    ```
 
-3. Setup frontend:
-   ```bash
+   The server will run on http://localhost:5000
+
+6. **Install frontend dependencies**
+
+   ```
+   cd ..  # Return to project root
    npm install
+   ```
+
+7. **Start the frontend development server**
+
+   ```
    npm run dev
    ```
 
-4. Access the application at http://localhost:8080
+   The frontend will be available at http://localhost:3000
 
-### Default Users
-- Admin: admin@example.com / password
-- User: user@example.com / password
+## Demo Credentials
 
-## Technical Implementation
+- **Admin User**: 
+  - Email: admin@example.com
+  - Password: password
 
-- **Real-time Updates**: WebSockets for instant data synchronization
-- **Responsive Design**: Works on mobile, tablet, and desktop
-- **Error Handling**: Comprehensive error handling and user feedback
-- **Security**: JWT authentication and role-based access control
-- **Performance**: Optimized database queries and frontend performance
+- **Regular User**: 
+  - Email: user@example.com
+  - Password: password
 
-## Database Schema
+## Testing the Monitoring System
 
-- **Users**: Store user accounts and roles
-- **Schedules**: Store hospital appointments
-- **Logs**: Track all system actions
-- **MonitoredUsers**: Track suspicious users
+1. Log in as an admin user
+2. Go to the Admin Dashboard
+3. Click the "Simulate Suspicious Activity" button
+4. Wait a few seconds and the user will appear in the monitored users list
+
+## Performance Testing
+
+For Silver tier performance testing, JMeter can be used to test the endpoints under load.

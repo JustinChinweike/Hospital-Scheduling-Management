@@ -21,42 +21,25 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
+import { adminAPI } from "../services/api";
 
 const AdminDashboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, monitoredUsers, logs } = useAuth();
+  const { user, monitoredUsers, logs, fetchMonitoredUsers, fetchLogs } = useAuth();
   const [recentLogs, setRecentLogs] = useState(logs.slice(0, 10));
+  const [statistics, setStatistics] = useState({
+    totalAppointments: 0,
+    busiestDoctor: 'None',
+    popularDepartment: 'None'
+  });
+  const [loading, setLoading] = useState<boolean>(false);
 
-  // Simulate monitoring a suspicious user
-  const simulateAttack = () => {
-    // Create 20 logs in rapid succession
-    for (let i = 0; i < 20; i++) {
-      setTimeout(() => {
-        if (user) {
-          const fakeEntityId = crypto.randomUUID();
-          const actions = ["CREATE", "READ", "UPDATE", "DELETE"];
-          const randomAction = actions[Math.floor(Math.random() * actions.length)] as "CREATE" | "READ" | "UPDATE" | "DELETE";
-          const log = {
-            id: crypto.randomUUID(),
-            userId: user.id,
-            action: randomAction,
-            entityType: "Schedule",
-            entityId: fakeEntityId,
-            timestamp: new Date()
-          };
-          
-          // Add to logs (in a real app, this would be handled by the context)
-          logs.push(log);
-          setRecentLogs(logs.slice(0, 10));
-        }
-      }, i * 100); // Space them out by 100ms each
-    }
-    
-    toast({
-      title: "Simulated Attack",
-      description: "20 rapid operations have been simulated. The user should be added to the monitored list soon.",
-    });
-  };
+  const token = localStorage.getItem("token");
+  
+  // Effect for setting recent logs
+  useEffect(() => {
+    setRecentLogs(logs.slice(0, 10));
+  }, [logs]);
 
   // Check authentication and admin role
   useEffect(() => {
@@ -80,10 +63,68 @@ const AdminDashboardPage: React.FC = () => {
     }
   }, [user, navigate]);
 
-  // Update recent logs when logs change
+  // Fetch statistics when the component mounts
   useEffect(() => {
-    setRecentLogs(logs.slice(0, 10));
-  }, [logs]);
+    if (user?.role === "ADMIN" && token) {
+      fetchStatistics();
+      
+      // Also refresh monitored users and logs data
+      fetchMonitoredUsers();
+      fetchLogs();
+    }
+  }, [user, token]);
+
+  const fetchStatistics = async () => {
+    if (!token || !user || user.role !== "ADMIN") return;
+    
+    setLoading(true);
+    try {
+      const data = await adminAPI.getStatistics(token);
+      setStatistics(data);
+    } catch (error) {
+      console.error("Failed to fetch statistics:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load dashboard statistics",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Simulate suspicious activity
+  const simulateAttack = async () => {
+    if (!token) return;
+    
+    toast({
+      title: "Simulating Attack",
+      description: "Creating multiple actions rapidly...",
+    });
+    
+    // Perform 20 API calls in rapid succession to trigger monitoring
+    for (let i = 0; i < 20; i++) {
+      try {
+        // Using getLogs API call to create activity
+        await adminAPI.getLogs(token);
+      } catch (error) {
+        console.error("Error during attack simulation:", error);
+      }
+      
+      // Very short delay between requests to not overload the server
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    toast({
+      title: "Simulation Complete",
+      description: "Multiple actions performed. Check the monitored users list shortly.",
+    });
+    
+    // Refresh monitored users after a short delay
+    setTimeout(() => {
+      fetchMonitoredUsers();
+    }, 3000);
+  };
 
   if (!user || user.role !== "ADMIN") {
     return null;
@@ -106,6 +147,36 @@ const AdminDashboardPage: React.FC = () => {
             <AlertTriangle className="mr-2 h-4 w-4" />
             Simulate Suspicious Activity
           </Button>
+        </div>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Total Appointments</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">{statistics.totalAppointments}</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Busiest Doctor</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xl font-semibold">{statistics.busiestDoctor}</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Popular Department</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xl font-semibold">{statistics.popularDepartment}</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Monitored Users Section */}
@@ -131,7 +202,7 @@ const AdminDashboardPage: React.FC = () => {
                 <TableBody>
                   {monitoredUsers.map((monitoredUser) => (
                     <TableRow key={monitoredUser.userId}>
-                      <TableCell>{monitoredUser.username}</TableCell>
+                      <TableCell>{monitoredUser.username || monitoredUser.User?.username}</TableCell>
                       <TableCell>{monitoredUser.reason}</TableCell>
                       <TableCell>
                         {new Date(monitoredUser.detectedAt).toLocaleString()}
@@ -160,7 +231,7 @@ const AdminDashboardPage: React.FC = () => {
                 <TableCaption>Showing the 10 most recent logs</TableCaption>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>User ID</TableHead>
+                    <TableHead>User</TableHead>
                     <TableHead>Action</TableHead>
                     <TableHead>Entity Type</TableHead>
                     <TableHead>Entity ID</TableHead>
@@ -170,7 +241,7 @@ const AdminDashboardPage: React.FC = () => {
                 <TableBody>
                   {recentLogs.map((log) => (
                     <TableRow key={log.id}>
-                      <TableCell>{log.userId}</TableCell>
+                      <TableCell>{log.User?.username || log.userId}</TableCell>
                       <TableCell>{log.action}</TableCell>
                       <TableCell>{log.entityType}</TableCell>
                       <TableCell className="truncate max-w-[100px]">{log.entityId}</TableCell>

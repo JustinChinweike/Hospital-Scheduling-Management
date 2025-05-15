@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { User, LogEntry, MonitoredUser } from "../types";
 import { toast } from "../components/ui/use-toast";
+import { authAPI, adminAPI } from "../services/api";
 
 interface AuthContextType {
   user: User | null;
@@ -12,123 +13,100 @@ interface AuthContextType {
   logs: LogEntry[];
   monitoredUsers: MonitoredUser[];
   addLog: (action: LogEntry["action"], entityType: string, entityId: string) => void;
+  fetchMonitoredUsers: () => Promise<void>;
+  fetchLogs: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users for demonstration
-const mockUsers: User[] = [
-  { id: "1", username: "admin", email: "admin@example.com", role: "ADMIN" },
-  { id: "2", username: "user", email: "user@example.com", role: "USER" }
-];
-
-// Mock logs
-const initialLogs: LogEntry[] = [];
-
-// Mock monitored users
-const initialMonitoredUsers: MonitoredUser[] = [];
-
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [logs, setLogs] = useState<LogEntry[]>(initialLogs);
-  const [monitoredUsers, setMonitoredUsers] = useState<MonitoredUser[]>(initialMonitoredUsers);
+  const [token, setToken] = useState<string | null>(null);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [monitoredUsers, setMonitoredUsers] = useState<MonitoredUser[]>([]);
   
   // Check for saved authentication on load
   useEffect(() => {
-    const savedUser = localStorage.getItem("user");
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (error) {
-        console.error("Failed to parse saved user:", error);
-        localStorage.removeItem("user");
-      }
+    const savedToken = localStorage.getItem("token");
+    if (savedToken) {
+      setToken(savedToken);
+      authAPI.getCurrentUser(savedToken)
+        .then(data => {
+          setUser({
+            id: data.id,
+            username: data.username, 
+            email: data.email,
+            role: data.role
+          });
+        })
+        .catch(error => {
+          console.error("Failed to fetch current user:", error);
+          localStorage.removeItem("token");
+          setToken(null);
+        });
     }
   }, []);
 
-  // Background monitoring thread simulation
+  // Fetch monitored users and logs for admin users
   useEffect(() => {
-    if (!user) return;
-
-    const monitoringInterval = setInterval(() => {
-      // Count user actions in the last minute
-      const lastMinute = new Date();
-      lastMinute.setMinutes(lastMinute.getMinutes() - 1);
-      
-      const recentUserLogs = logs.filter(
-        log => log.userId === user.id && new Date(log.timestamp) > lastMinute
-      );
-      
-      // If user has more than 10 actions in the last minute, mark as suspicious
-      if (recentUserLogs.length > 10 && user.role !== "ADMIN") {
-        const existingMonitored = monitoredUsers.find(m => m.userId === user.id);
-        
-        if (!existingMonitored) {
-          const newMonitoredUser: MonitoredUser = {
-            userId: user.id,
-            username: user.username,
-            reason: `Performed ${recentUserLogs.length} actions in 1 minute`,
-            detectedAt: new Date()
-          };
-          
-          setMonitoredUsers(prev => [...prev, newMonitoredUser]);
-          
-          // Only show toast for admins
-          if (user.role === "ADMIN") {
-            toast({
-              title: "New User Monitored",
-              description: `${user.username} has been added to the monitored users list.`
-            });
-          }
-        }
-      }
-    }, 10000); // Check every 10 seconds
-    
-    return () => clearInterval(monitoringInterval);
-  }, [user, logs, monitoredUsers]);
-  
-  const login = async (email: string, password: string): Promise<boolean> => {
-    // Demo login with mock data
-    const foundUser = mockUsers.find(u => u.email === email);
-    
-    if (foundUser) {
-      setUser(foundUser);
-      localStorage.setItem("user", JSON.stringify(foundUser));
-      return true;
+    if (user?.role === "ADMIN" && token) {
+      fetchMonitoredUsers();
+      fetchLogs();
     }
-    
-    return false;
+  }, [user, token]);
+
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const data = await authAPI.login(email, password);
+      
+      if (data.token) {
+        setToken(data.token);
+        localStorage.setItem("token", data.token);
+        
+        setUser({
+          id: data.user.id,
+          username: data.user.username,
+          email: data.user.email,
+          role: data.user.role
+        });
+        
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Login error:", error);
+      return false;
+    }
   };
   
   const register = async (username: string, email: string, password: string): Promise<boolean> => {
-    // Check if user already exists
-    const existingUser = mockUsers.find(u => u.email === email);
-    
-    if (existingUser) {
+    try {
+      const data = await authAPI.register(username, email, password);
+      
+      if (data.token) {
+        setToken(data.token);
+        localStorage.setItem("token", data.token);
+        
+        setUser({
+          id: data.user.id,
+          username: data.user.username,
+          email: data.user.email,
+          role: data.user.role
+        });
+        
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Registration error:", error);
       return false;
     }
-    
-    // Create new user
-    const newUser: User = {
-      id: crypto.randomUUID(),
-      username,
-      email,
-      role: "USER" // New users are always regular users
-    };
-    
-    // In a real app, we would send this to an API
-    mockUsers.push(newUser);
-    
-    // Log in the new user
-    setUser(newUser);
-    localStorage.setItem("user", JSON.stringify(newUser));
-    
-    return true;
   };
   
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("user");
+    setToken(null);
+    localStorage.removeItem("token");
   };
   
   const addLog = (action: LogEntry["action"], entityType: string, entityId: string) => {
@@ -145,6 +123,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     setLogs(prev => [...prev, newLog]);
   };
+
+  const fetchMonitoredUsers = async (): Promise<void> => {
+    if (!token || user?.role !== "ADMIN") return;
+    
+    try {
+      const data = await adminAPI.getMonitoredUsers(token);
+      setMonitoredUsers(data);
+    } catch (error) {
+      console.error("Failed to fetch monitored users:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch monitored users",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const fetchLogs = async (): Promise<void> => {
+    if (!token || user?.role !== "ADMIN") return;
+    
+    try {
+      const data = await adminAPI.getLogs(token);
+      setLogs(data.data);
+    } catch (error) {
+      console.error("Failed to fetch logs:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch activity logs",
+        variant: "destructive"
+      });
+    }
+  };
   
   return (
     <AuthContext.Provider 
@@ -156,7 +166,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         logout,
         logs,
         monitoredUsers,
-        addLog
+        addLog,
+        fetchMonitoredUsers,
+        fetchLogs
       }}
     >
       {children}

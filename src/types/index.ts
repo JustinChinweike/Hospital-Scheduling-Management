@@ -17,6 +17,10 @@ export interface User {
 export interface LogEntry {
   id: string;
   userId: string;
+  User?: {
+    username: string;
+    email: string;
+  };
   action: "CREATE" | "READ" | "UPDATE" | "DELETE";
   entityType: string;
   entityId: string;
@@ -25,15 +29,32 @@ export interface LogEntry {
 
 export interface MonitoredUser {
   userId: string;
-  username: string;
+  username?: string;
+  User?: {
+    username: string;
+    email: string;
+  };
   reason: string;
   detectedAt: Date;
 }
 
-export type Schedule = {
+export interface Schedule {
   id: string;
   doctorName: string;
   patientName: string;
   dateTime: string;
   department: string;
-};
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+}
+
+export interface Statistics {
+  totalAppointments: number;
+  busiestDoctor: string;
+  popularDepartment: string;
+}
