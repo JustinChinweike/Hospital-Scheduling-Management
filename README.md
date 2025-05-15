@@ -1,73 +1,78 @@
-# Welcome to your Lovable project
 
-## Project info
+# Hospital Scheduling System
 
-**URL**: https://lovable.dev/projects/28d70f92-bf52-4745-ba8c-ce29700fd58e
+This application is a comprehensive Hospital Scheduling System that meets all requirements for Bronze, Silver, and Gold tier features.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+### Bronze Tier
+- **Database Relationships**: One-to-many relationship between users and schedules
+- **Full CRUD Support**: Create, read, update, and delete operations for schedules
+- **Filtering and Sorting**: Filter schedules by doctor, patient, department, and more
+- **ORM Integration**: Uses Sequelize for database operations
 
-**Use Lovable**
+### Silver Tier
+- **Large Dataset**: Populated with 100,000+ records for performance testing
+- **Performance Optimization**: Database indices and query optimization
+- **Complex Queries**: Optimized statistical queries
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/28d70f92-bf52-4745-ba8c-ce29700fd58e) and start prompting.
+### Gold Tier
+- **Authentication System**: Register and login functionality
+- **User Roles**: Admin and regular user roles with proper permissions
+- **Logging System**: Tracks all CRUD operations
+- **Background Monitoring**: Detects suspicious user activity
+- **Admin Dashboard**: View monitored users and system logs
+- **Simulated Attack**: Demonstrates security monitoring capabilities
 
-Changes made via Lovable will be committed automatically to this repo.
+## Project Structure
 
-**Use your preferred IDE**
+The project consists of two main parts:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1. **Frontend**: React application with Tailwind CSS and shadcn/UI
+2. **Backend**: Express.js server with PostgreSQL database using Sequelize ORM
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Getting Started
 
-Follow these steps:
+### Prerequisites
+- Node.js
+- PostgreSQL
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Setup
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+1. Clone the repository
 
-# Step 3: Install the necessary dependencies.
-npm i
+2. Setup backend:
+   ```bash
+   cd backend
+   npm install
+   # Update .env file with your PostgreSQL credentials
+   npm run seed # This will create admin and user accounts and seed the database
+   npm run dev
+   ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+3. Setup frontend:
+   ```bash
+   npm install
+   npm run dev
+   ```
 
-**Edit a file directly in GitHub**
+4. Access the application at http://localhost:8080
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Default Users
+- Admin: admin@example.com / password
+- User: user@example.com / password
 
-**Use GitHub Codespaces**
+## Technical Implementation
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- **Real-time Updates**: WebSockets for instant data synchronization
+- **Responsive Design**: Works on mobile, tablet, and desktop
+- **Error Handling**: Comprehensive error handling and user feedback
+- **Security**: JWT authentication and role-based access control
+- **Performance**: Optimized database queries and frontend performance
 
-## What technologies are used for this project?
+## Database Schema
 
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/28d70f92-bf52-4745-ba8c-ce29700fd58e) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- **Users**: Store user accounts and roles
+- **Schedules**: Store hospital appointments
+- **Logs**: Track all system actions
+- **MonitoredUsers**: Track suspicious users

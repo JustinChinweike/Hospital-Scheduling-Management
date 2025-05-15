@@ -73,6 +73,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           
           setMonitoredUsers(prev => [...prev, newMonitoredUser]);
           
+          // Only show toast for admins
           if (user.role === "ADMIN") {
             toast({
               title: "New User Monitored",
@@ -84,7 +85,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, 10000); // Check every 10 seconds
     
     return () => clearInterval(monitoringInterval);
-  }, [user, logs]);
+  }, [user, logs, monitoredUsers]);
   
   const login = async (email: string, password: string): Promise<boolean> => {
     // Demo login with mock data
