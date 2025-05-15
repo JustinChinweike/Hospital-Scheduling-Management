@@ -1,27 +1,34 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { OfflineProvider } from "./context/OfflineContext";
+import { ScheduleProvider } from "./context/ScheduleContext";
+import AddSchedulePage from "./pages/AddSchedulePage";
+import EditSchedulePage from "./pages/EditSchedulePage";
+import ListSchedulePage from "./pages/ListSchedulePage";
+import TaskPage from "./pages/TaskPage";
+import AuthPage from "./pages/AuthPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
-
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+  <OfflineProvider>
+    <ScheduleProvider>
+      <Router>
         <Routes>
           <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/add-schedule" element={<AddSchedulePage />} />
+          <Route path="/edit-schedule/:id" element={<EditSchedulePage />} />
+          <Route path="/list-schedule" element={<ListSchedulePage />} />
+          <Route path="/tasks" element={<TaskPage />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+      </Router>
+    </ScheduleProvider>
+  </OfflineProvider>
 );
 
 export default App;
