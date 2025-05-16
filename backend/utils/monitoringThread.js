@@ -16,13 +16,13 @@ const analyzeLogs = async () => {
     const suspiciousActivity = await Log.findAll({
       attributes: [
         'userId',
-        [sequelize.fn('COUNT', sequelize.col('id')), 'actionCount']
+        [sequelize.fn('COUNT', sequelize.col('Log.id')), 'actionCount']
       ],
       where: {
         createdAt: { [Op.gte]: oneMinuteAgo }
       },
-      group: ['userId'],
-      having: sequelize.literal('COUNT(id) > 10'),
+      group: ['userId', 'User.id', 'User.username', 'User.role'],
+      having: sequelize.literal('COUNT("Log"."id") > 10'),
       include: [
         {
           model: User,
