@@ -7,7 +7,6 @@ import { AuthProvider } from "./context/AuthContext";
 import AddSchedulePage from "./pages/AddSchedulePage";
 import EditSchedulePage from "./pages/EditSchedulePage";
 import ListSchedulePage from "./pages/ListSchedulePage";
-import TaskPage from "./pages/TaskPage";
 import AuthPage from "./pages/AuthPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import Index from "./pages/Index";
@@ -24,7 +23,6 @@ const App = () => (
             <Route path="/add-schedule" element={<AddSchedulePage />} />
             <Route path="/edit-schedule/:id" element={<EditSchedulePage />} />
             <Route path="/list-schedule" element={<ListSchedulePage />} />
-            <Route path="/tasks" element={<TaskPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/admin" element={<AdminDashboardPage />} />
             <Route path="*" element={<NotFound />} />

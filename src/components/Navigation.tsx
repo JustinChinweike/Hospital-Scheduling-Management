@@ -54,13 +54,6 @@ const Navigation = () => {
       >
         LIST SCHEDULE & FILTERING
       </Button>
-
-      <Button 
-        className="bg-purple-700 hover:bg-purple-800 text-white py-6 text-lg uppercase"
-        onClick={() => navigate("/tasks")}
-      >
-        TASK MANAGER
-      </Button>
       
       {isAdmin && (
         <Button 

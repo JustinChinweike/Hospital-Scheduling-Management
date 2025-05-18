@@ -24,72 +24,66 @@ This project implements a hospital scheduler system with both frontend and backe
 - Admin dashboard with monitored users list and activity logs
 - Simulated attack scenario
 
-## Tech Stack
-
-- **Frontend**: React, TypeScript, TailwindCSS, Shadcn UI
-- **Backend**: Node.js, Express, Sequelize ORM
-- **Database**: PostgreSQL
-
-## Getting Started
+## Project Setup Instructions
 
 ### Prerequisites
+- Node.js (v14 or higher)
+- npm or yarn
+- PostgreSQL database
 
-1. Node.js (v14+)
-2. PostgreSQL database
-
-### Setup Instructions
-
-1. **Setup PostgreSQL database**
-
-   Create a PostgreSQL database named `hospital_scheduler`.
-
-2. **Configure backend environment**
-
-   Update the `.env` file in the `backend` directory with your database credentials.
-
-3. **Install backend dependencies**
-
+### Setting Up the Backend
+1. Navigate to the backend directory:
    ```
    cd backend
+   ```
+
+2. Install the required dependencies:
+   ```
    npm install
    ```
 
-4. **Seed the database**
+3. Set up your PostgreSQL database:
+   - Make sure PostgreSQL is installed and running
+   - Create a database named `hospital_schedule`
+   - Update the `.env` file with your database credentials if needed
 
+4. Seed the database with initial data:
    ```
    npm run seed
    ```
-
    This will create:
-   - Initial admin user (email: admin@example.com, password: password)
-   - Initial regular user (email: user@example.com, password: password)
-   - 100,000 sample schedule records
+   - Admin user: admin@example.com / password
+   - Regular user: user@example.com / password
+   - 100,000+ sample schedule records
 
-5. **Start the backend server**
-
+5. Start the backend server:
    ```
    npm run dev
    ```
+   The backend server will run on http://localhost:5000
 
-   The server will run on http://localhost:5000
+### Setting Up the Frontend
+1. Open a new terminal and navigate to the project root directory
 
-6. **Install frontend dependencies**
-
+2. Install frontend dependencies:
    ```
-   cd ..  # Return to project root
    npm install
    ```
 
-7. **Start the frontend development server**
+3. Create a `.npmrc` file in the root directory with the following content:
+   ```
+   legacy-peer-deps=true
+   ```
 
+4. Start the frontend development server:
    ```
    npm run dev
    ```
+   The frontend application will be available at http://localhost:8080
 
-   The frontend will be available at http://localhost:3000
+## Using the Application
 
-## Demo Credentials
-
+### Login Credentials
 - **Admin User**: 
   - Email: admin@example.com
   - Password: password
@@ -98,13 +92,31 @@ This project implements a hospital scheduler system with both frontend and backe
   - Email: user@example.com
   - Password: password
 
-## Testing the Monitoring System
+### Main Features
+1. **Authentication**: Register new users or login with existing accounts
+2. **Add Schedules**: Create new hospital appointments
+3. **List Schedules**: View, filter, and sort all hospital appointments
+4. **Admin Dashboard**: Monitor system activity and suspicious users (admin only)
 
-1. Log in as an admin user
-2. Go to the Admin Dashboard
-3. Click the "Simulate Suspicious Activity" button
-4. Wait a few seconds and the user will appear in the monitored users list
+## Troubleshooting
 
-## Performance Testing
+### Backend Issues
+- Ensure PostgreSQL is running and accessible
+- Check that the database credentials in the `.env` file are correct
+- Verify that port 5000 is not in use by another application
 
-For Silver tier performance testing, JMeter can be used to test the endpoints under load.
+### Frontend Issues
+- If you encounter dependency conflicts, ensure the `.npmrc` file contains `legacy-peer-deps=true`
+- Clear browser cache if you experience unexpected behaviors
+- Check the browser console for any error messages
+
+## Performance Monitoring
+
+For Silver tier performance testing, JMeter or similar tools can be used to test the API endpoints under load.
+
+## Security Features
+
+The system includes a monitoring thread that detects suspicious activity:
+- Tracks users with high activity rates
+- Identifies potential attack patterns
+- Alerts admins via the dashboard

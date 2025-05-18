@@ -1,12 +1,4 @@
 
-export interface Task {
-  id: string;
-  title: string;
-  category: string;
-  completed: boolean;
-  createdAt: Date;
-}
-
 export interface User {
   id: string;
   username: string;
