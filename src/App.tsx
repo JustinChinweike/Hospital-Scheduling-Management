@@ -27,7 +27,7 @@ const ProtectedRoute = ({ children }) => {
 
 // Admin route component that requires admin role
 const AdminRoute = ({ children }) => {
-  // This is a placeholder that will need to be expanded with actual role checking
+  // Get authentication token
   const isAuthenticated = localStorage.getItem("token");
   let user = null;
   
@@ -36,19 +36,25 @@ const AdminRoute = ({ children }) => {
     const userString = localStorage.getItem("user");
     if (userString) {
       user = JSON.parse(userString);
+      console.log("Admin route check - User:", user);
+    } else {
+      console.log("Admin route check - No user data in localStorage");
     }
   } catch (error) {
     console.error("Error parsing user from localStorage:", error);
   }
   
   if (!isAuthenticated) {
+    console.log("Admin route - Not authenticated, redirecting to /auth");
     return <Navigate to="/auth" />;
   }
   
   if (!user || user.role !== "ADMIN") {
+    console.log("Admin route - Not admin, redirecting to /");
     return <Navigate to="/" />;
   }
   
+  console.log("Admin route - Access granted");
   return children;
 };
 

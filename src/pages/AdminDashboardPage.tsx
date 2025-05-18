@@ -43,7 +43,10 @@ const AdminDashboardPage: React.FC = () => {
 
   // Check authentication and admin role
   useEffect(() => {
+    console.log("AdminDashboardPage - Current user:", user);
+    
     if (!user) {
+      console.log("AdminDashboardPage - No user, redirecting to /auth");
       toast({
         title: "Authentication Required",
         description: "Please login to access this page",
@@ -54,6 +57,7 @@ const AdminDashboardPage: React.FC = () => {
     }
 
     if (user.role !== "ADMIN") {
+      console.log("AdminDashboardPage - Not admin, redirecting to /");
       toast({
         title: "Access Denied",
         description: "Only administrators can access this page",
@@ -65,6 +69,7 @@ const AdminDashboardPage: React.FC = () => {
 
   // Fetch statistics when the component mounts
   useEffect(() => {
+    console.log("AdminDashboardPage - Fetching data, user role:", user?.role);
     if (user?.role === "ADMIN" && token) {
       fetchStatistics();
       
@@ -143,7 +148,10 @@ const AdminDashboardPage: React.FC = () => {
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <Button onClick={simulateAttack} variant="destructive">
+          <Button onClick={() => {
+            console.log("Simulating attack...");
+            simulateAttack();
+          }} variant="destructive">
             <AlertTriangle className="mr-2 h-4 w-4" />
             Simulate Suspicious Activity
           </Button>

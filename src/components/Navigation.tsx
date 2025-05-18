@@ -22,6 +22,12 @@ const Navigation = () => {
     navigate("/");
   };
 
+  const handleAdminClick = () => {
+    // Add console log for debugging
+    console.log("Admin button clicked, navigating to /admin");
+    navigate("/admin");
+  };
+
   return (
     <div className="flex flex-col space-y-4 w-full max-w-md mx-auto">
       <h1 className="text-2xl font-bold text-center my-6">HOSPITAL SCHEDULING MANAGEMENT</h1>
@@ -60,7 +66,7 @@ const Navigation = () => {
           {isAdmin && (
             <Button 
               className="bg-orange-600 hover:bg-orange-700 text-white py-6 text-lg uppercase"
-              onClick={() => navigate("/admin")}
+              onClick={handleAdminClick}
             >
               ADMIN DASHBOARD
             </Button>

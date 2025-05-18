@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { User, LogEntry, MonitoredUser } from "../types";
 import { toast } from "../components/ui/use-toast";
@@ -30,20 +29,37 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const savedToken = localStorage.getItem("token");
     if (savedToken) {
       setToken(savedToken);
-      authAPI.getCurrentUser(savedToken)
-        .then(data => {
-          setUser({
-            id: data.id,
-            username: data.username, 
-            email: data.email,
-            role: data.role
+      try {
+        // First try to get user from localStorage
+        const userString = localStorage.getItem("user");
+        if (userString) {
+          const savedUser = JSON.parse(userString);
+          setUser(savedUser);
+          console.log("User loaded from localStorage:", savedUser);
+        }
+        
+        // Then fetch the current user from API to ensure data is up-to-date
+        authAPI.getCurrentUser(savedToken)
+          .then(data => {
+            const currentUser = {
+              id: data.id,
+              username: data.username, 
+              email: data.email,
+              role: data.role
+            };
+            setUser(currentUser);
+            // Update localStorage with fresh user data
+            localStorage.setItem("user", JSON.stringify(currentUser));
+            console.log("User updated from API:", currentUser);
+          })
+          .catch(error => {
+            console.error("Failed to fetch current user:", error);
+            // Don't clear token/user here as the API might be temporarily unavailable
+            // and we don't want to log users out unnecessarily
           });
-        })
-        .catch(error => {
-          console.error("Failed to fetch current user:", error);
-          localStorage.removeItem("token");
-          setToken(null);
-        });
+      } catch (error) {
+        console.error("Error loading user data:", error);
+      }
     }
   }, []);
 
@@ -63,12 +79,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setToken(data.token);
         localStorage.setItem("token", data.token);
         
-        setUser({
+        const userData = {
           id: data.user.id,
           username: data.user.username,
           email: data.user.email,
           role: data.user.role
-        });
+        };
+        
+        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData));
+        console.log("User set after login:", userData);
         
         return true;
       }
@@ -87,12 +107,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setToken(data.token);
         localStorage.setItem("token", data.token);
         
-        setUser({
+        const userData = {
           id: data.user.id,
           username: data.user.username,
           email: data.user.email,
           role: data.user.role
-        });
+        };
+        
+        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData));
+        console.log("User set after registration:", userData);
         
         return true;
       }
@@ -107,6 +131,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
     setToken(null);
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
   };
   
   const addLog = (action: LogEntry["action"], entityType: string, entityId: string) => {
