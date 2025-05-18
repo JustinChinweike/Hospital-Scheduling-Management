@@ -29,13 +29,23 @@ const ProtectedRoute = ({ children }) => {
 const AdminRoute = ({ children }) => {
   // This is a placeholder that will need to be expanded with actual role checking
   const isAuthenticated = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  let user = null;
+  
+  try {
+    // Try to parse user from localStorage
+    const userString = localStorage.getItem("user");
+    if (userString) {
+      user = JSON.parse(userString);
+    }
+  } catch (error) {
+    console.error("Error parsing user from localStorage:", error);
+  }
   
   if (!isAuthenticated) {
     return <Navigate to="/auth" />;
   }
   
-  if (user.role !== "ADMIN") {
+  if (!user || user.role !== "ADMIN") {
     return <Navigate to="/" />;
   }
   
