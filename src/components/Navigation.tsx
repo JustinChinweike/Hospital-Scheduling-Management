@@ -33,35 +33,37 @@ const Navigation = () => {
           Login / Register
         </Button>
       ) : (
-        <Button 
-          className="bg-red-600 hover:bg-red-700 text-white py-6 text-lg uppercase"
-          onClick={handleLogout}
-        >
-          Logout
-        </Button>
-      )}
-      
-      <Button 
-        className="bg-blue-900 hover:bg-blue-800 text-white py-6 text-lg uppercase"
-        onClick={() => navigate("/add-schedule")}
-      >
-        ADD SCHEDULE
-      </Button>
-      
-      <Button 
-        className="bg-blue-900 hover:bg-blue-800 text-white py-6 text-lg uppercase"
-        onClick={() => navigate("/list-schedule")}
-      >
-        LIST SCHEDULE & FILTERING
-      </Button>
-      
-      {isAdmin && (
-        <Button 
-          className="bg-orange-600 hover:bg-orange-700 text-white py-6 text-lg uppercase"
-          onClick={() => navigate("/admin")}
-        >
-          ADMIN DASHBOARD
-        </Button>
+        <>
+          <Button 
+            className="bg-red-600 hover:bg-red-700 text-white py-6 text-lg uppercase"
+            onClick={handleLogout}
+          >
+            Logout
+          </Button>
+          
+          <Button 
+            className="bg-blue-900 hover:bg-blue-800 text-white py-6 text-lg uppercase"
+            onClick={() => navigate("/add-schedule")}
+          >
+            ADD SCHEDULE
+          </Button>
+          
+          <Button 
+            className="bg-blue-900 hover:bg-blue-800 text-white py-6 text-lg uppercase"
+            onClick={() => navigate("/list-schedule")}
+          >
+            LIST SCHEDULE & FILTERING
+          </Button>
+          
+          {isAdmin && (
+            <Button 
+              className="bg-orange-600 hover:bg-orange-700 text-white py-6 text-lg uppercase"
+              onClick={() => navigate("/admin")}
+            >
+              ADMIN DASHBOARD
+            </Button>
+          )}
+        </>
       )}
     </div>
   );
