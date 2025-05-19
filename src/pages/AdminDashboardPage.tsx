@@ -36,6 +36,21 @@ const AdminDashboardPage: React.FC = () => {
 
   const token = localStorage.getItem("token");
   
+  // Format date function to handle various date formats
+  const formatDate = (dateString: string | Date) => {
+    try {
+      const date = new Date(dateString);
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return "N/A";
+      }
+      return date.toLocaleString();
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "N/A";
+    }
+  };
+  
   // Effect for setting recent logs
   useEffect(() => {
     setRecentLogs(logs.slice(0, 10));
@@ -213,7 +228,7 @@ const AdminDashboardPage: React.FC = () => {
                       <TableCell>{monitoredUser.username || monitoredUser.User?.username}</TableCell>
                       <TableCell>{monitoredUser.reason}</TableCell>
                       <TableCell>
-                        {new Date(monitoredUser.detectedAt).toLocaleString()}
+                        {formatDate(monitoredUser.detectedAt)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -254,7 +269,7 @@ const AdminDashboardPage: React.FC = () => {
                       <TableCell>{log.entityType}</TableCell>
                       <TableCell className="truncate max-w-[100px]">{log.entityId}</TableCell>
                       <TableCell>
-                        {new Date(log.timestamp).toLocaleString()}
+                        {formatDate(log.timestamp)}
                       </TableCell>
                     </TableRow>
                   ))}

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "../hooks/use-toast";
-import { LogOut } from "lucide-react";
+import { LogOut, User, ShieldCheck } from "lucide-react";
 
 const Navigation = () => {
   const navigate = useNavigate();
@@ -23,8 +23,8 @@ const Navigation = () => {
   };
 
   const handleAdminClick = () => {
-    // Add console log for debugging
-    console.log("Admin button clicked, navigating to /admin");
+    console.log("Admin button clicked, user:", user);
+    console.log("Navigating to /admin");
     navigate("/admin");
   };
 
@@ -42,11 +42,11 @@ const Navigation = () => {
       ) : (
         <>
           <Button 
-            className="flex items-center justify-center bg-red-600 hover:bg-red-700 text-white py-6 text-lg uppercase gap-2"
+            className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white py-6 text-lg uppercase rounded-md shadow-md hover:shadow-lg transition-all duration-200"
             onClick={handleLogout}
           >
             <LogOut className="w-5 h-5" />
-            Logout
+            <span>Logout</span>
           </Button>
           
           <Button 
@@ -65,10 +65,11 @@ const Navigation = () => {
           
           {isAdmin && (
             <Button 
-              className="bg-orange-600 hover:bg-orange-700 text-white py-6 text-lg uppercase"
+              className="flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white py-6 text-lg uppercase"
               onClick={handleAdminClick}
             >
-              ADMIN DASHBOARD
+              <ShieldCheck className="w-5 h-5" />
+              <span>ADMIN DASHBOARD</span>
             </Button>
           )}
         </>

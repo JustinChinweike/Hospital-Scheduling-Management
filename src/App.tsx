@@ -15,7 +15,7 @@ import { Toaster } from "./components/ui/toaster";
 
 // Protected route component that requires authentication
 const ProtectedRoute = ({ children }) => {
-  // This is a placeholder that will get the actual user from AuthContext
+  // Get authentication token
   const isAuthenticated = localStorage.getItem("token");
   
   if (!isAuthenticated) {
@@ -27,12 +27,12 @@ const ProtectedRoute = ({ children }) => {
 
 // Admin route component that requires admin role
 const AdminRoute = ({ children }) => {
-  // Get authentication token
+  // Get authentication token and user data
   const isAuthenticated = localStorage.getItem("token");
-  let user = null;
   
+  // Try to parse user from localStorage
+  let user = null;
   try {
-    // Try to parse user from localStorage
     const userString = localStorage.getItem("user");
     if (userString) {
       user = JSON.parse(userString);
@@ -44,16 +44,19 @@ const AdminRoute = ({ children }) => {
     console.error("Error parsing user from localStorage:", error);
   }
   
+  // If no token, redirect to auth page
   if (!isAuthenticated) {
     console.log("Admin route - Not authenticated, redirecting to /auth");
     return <Navigate to="/auth" />;
   }
   
+  // If user is not admin, redirect to home page
   if (!user || user.role !== "ADMIN") {
     console.log("Admin route - Not admin, redirecting to /");
     return <Navigate to="/" />;
   }
   
+  // User is authenticated and is admin
   console.log("Admin route - Access granted");
   return children;
 };
