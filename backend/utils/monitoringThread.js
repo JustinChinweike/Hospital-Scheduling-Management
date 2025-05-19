@@ -22,7 +22,7 @@ const analyzeLogs = async () => {
         createdAt: { [Op.gte]: oneMinuteAgo }
       },
       group: ['userId', 'User.id', 'User.username', 'User.role'],
-      having: sequelize.literal('COUNT("Log"."id") > 10'),
+      having: sequelize.literal('COUNT("Log"."id") > 5'), // Reduced threshold to make detection easier
       include: [
         {
           model: User,
@@ -44,7 +44,7 @@ const analyzeLogs = async () => {
         await MonitoredUser.create({
           userId: activity.userId,
           reason: `Performed ${activity.dataValues.actionCount} actions in 1 minute`,
-          detectedAt: new Date()
+          detectedAt: new Date().toISOString() // Store as ISO string for consistent parsing
         });
         
         console.log(`User ${activity.User.username} added to monitored list`);
@@ -55,7 +55,7 @@ const analyzeLogs = async () => {
   }
 };
 
-// Run the analysis every 10 seconds
-setInterval(analyzeLogs, 10000);
+// Run the analysis every 5 seconds (reduced from 10 for quicker testing)
+setInterval(analyzeLogs, 5000);
 
 console.log('Monitoring thread started');

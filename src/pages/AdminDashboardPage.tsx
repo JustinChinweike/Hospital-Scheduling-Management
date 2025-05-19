@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "../components/ui/use-toast";
 import { Button } from "../components/ui/button";
-import { ChevronLeft, AlertTriangle } from "lucide-react";
+import { ChevronLeft, AlertTriangle, Loader2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -33,17 +33,24 @@ const AdminDashboardPage: React.FC = () => {
     popularDepartment: 'None'
   });
   const [loading, setLoading] = useState<boolean>(false);
+  const [simulatingAttack, setSimulatingAttack] = useState<boolean>(false);
 
   const token = localStorage.getItem("token");
   
   // Format date function to handle various date formats
   const formatDate = (dateString: string | Date) => {
+    if (!dateString) return "N/A";
+    
     try {
+      // Try parsing as ISO string first
       const date = new Date(dateString);
+      
       // Check if date is valid
       if (isNaN(date.getTime())) {
         return "N/A";
       }
+      
+      // Format the date as a locale string
       return date.toLocaleString();
     } catch (error) {
       console.error("Error formatting date:", error);
@@ -94,6 +101,18 @@ const AdminDashboardPage: React.FC = () => {
     }
   }, [user, token]);
 
+  // Refresh data periodically (every 5 seconds)
+  useEffect(() => {
+    if (user?.role === "ADMIN" && token) {
+      const interval = setInterval(() => {
+        fetchMonitoredUsers();
+        fetchLogs();
+      }, 5000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [user, token]);
+
   const fetchStatistics = async () => {
     if (!token || !user || user.role !== "ADMIN") return;
     
@@ -115,7 +134,9 @@ const AdminDashboardPage: React.FC = () => {
 
   // Simulate suspicious activity
   const simulateAttack = async () => {
-    if (!token) return;
+    if (!token || simulatingAttack) return;
+    
+    setSimulatingAttack(true);
     
     toast({
       title: "Simulating Attack",
@@ -123,27 +144,41 @@ const AdminDashboardPage: React.FC = () => {
     });
     
     // Perform 20 API calls in rapid succession to trigger monitoring
-    for (let i = 0; i < 20; i++) {
-      try {
+    try {
+      const promises = [];
+      for (let i = 0; i < 20; i++) {
         // Using getLogs API call to create activity
-        await adminAPI.getLogs(token);
-      } catch (error) {
-        console.error("Error during attack simulation:", error);
+        promises.push(adminAPI.getLogs(token));
       }
       
-      // Very short delay between requests to not overload the server
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await Promise.all(promises);
+      
+      toast({
+        title: "Simulation Complete",
+        description: "Multiple actions performed. Checking monitored users list...",
+      });
+      
+      // Refresh monitored users after a short delay
+      setTimeout(async () => {
+        await fetchMonitoredUsers();
+        await fetchLogs();
+        setSimulatingAttack(false);
+        
+        toast({
+          title: "Data Refreshed",
+          description: "Check the Monitored Users list for new entries.",
+        });
+      }, 3000);
+    } catch (error) {
+      console.error("Error during attack simulation:", error);
+      setSimulatingAttack(false);
+      
+      toast({
+        title: "Simulation Failed",
+        description: "Error during attack simulation.",
+        variant: "destructive"
+      });
     }
-    
-    toast({
-      title: "Simulation Complete",
-      description: "Multiple actions performed. Check the monitored users list shortly.",
-    });
-    
-    // Refresh monitored users after a short delay
-    setTimeout(() => {
-      fetchMonitoredUsers();
-    }, 3000);
   };
 
   if (!user || user.role !== "ADMIN") {
@@ -163,12 +198,22 @@ const AdminDashboardPage: React.FC = () => {
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <Button onClick={() => {
-            console.log("Simulating attack...");
-            simulateAttack();
-          }} variant="destructive">
-            <AlertTriangle className="mr-2 h-4 w-4" />
-            Simulate Suspicious Activity
+          <Button 
+            onClick={simulateAttack} 
+            variant="destructive"
+            disabled={simulatingAttack}
+          >
+            {simulatingAttack ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Simulating...
+              </>
+            ) : (
+              <>
+                <AlertTriangle className="mr-2 h-4 w-4" />
+                Simulate Suspicious Activity
+              </>
+            )}
           </Button>
         </div>
 
@@ -212,7 +257,7 @@ const AdminDashboardPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             {monitoredUsers.length === 0 ? (
-              <p className="text-muted-foreground">No users are currently monitored</p>
+              <p className="text-muted-foreground">No users are currently monitored. Try simulating suspicious activity.</p>
             ) : (
               <Table>
                 <TableHeader>
