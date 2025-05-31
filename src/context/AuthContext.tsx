@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { User, LogEntry, MonitoredUser } from "../types";
 import { toast } from "../components/ui/use-toast";
@@ -6,7 +7,7 @@ import { authAPI, adminAPI } from "../services/api";
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string, twoFactorCode?: string) => Promise<boolean | "2FA_REQUIRED">;
   register: (username: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
   logs: LogEntry[];
@@ -45,7 +46,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               id: data.id,
               username: data.username, 
               email: data.email,
-              role: data.role
+              role: data.role,
+              twoFactorEnabled: data.twoFactorEnabled
             };
             setUser(currentUser);
             // Update localStorage with fresh user data
@@ -71,9 +73,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [user, token]);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string, twoFactorCode?: string): Promise<boolean | "2FA_REQUIRED"> => {
     try {
-      const data = await authAPI.login(email, password);
+      const data = await authAPI.login(email, password, twoFactorCode);
+      
+      // Check if 2FA is required
+      if (data.requiresTwoFactor) {
+        return "2FA_REQUIRED";
+      }
       
       if (data.token) {
         setToken(data.token);
@@ -83,7 +90,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           id: data.user.id,
           username: data.user.username,
           email: data.user.email,
-          role: data.user.role
+          role: data.user.role,
+          twoFactorEnabled: data.user.twoFactorEnabled
         };
         
         setUser(userData);
@@ -111,7 +119,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           id: data.user.id,
           username: data.user.username,
           email: data.user.email,
-          role: data.user.role
+          role: data.user.role,
+          twoFactorEnabled: data.user.twoFactorEnabled
         };
         
         setUser(userData);

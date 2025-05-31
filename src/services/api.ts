@@ -1,5 +1,5 @@
 
-import { Schedule, User, LogEntry, MonitoredUser } from "../types";
+import { Schedule, User, LogEntry, MonitoredUser, TwoFactorSetup } from "../types";
 
 const API_URL = "http://localhost:5000";
 
@@ -14,11 +14,11 @@ const handleResponse = async (response: Response) => {
 
 // Auth API calls
 export const authAPI = {
-  login: async (email: string, password: string) => {
+  login: async (email: string, password: string, twoFactorCode?: string) => {
     const response = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, twoFactorCode }),
     });
     return handleResponse(response);
   },
@@ -38,6 +38,41 @@ export const authAPI = {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"
       },
+    });
+    return handleResponse(response);
+  },
+
+  setup2FA: async (token: string): Promise<TwoFactorSetup> => {
+    const response = await fetch(`${API_URL}/auth/2fa/setup`, {
+      method: "POST",
+      headers: { 
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+    });
+    return handleResponse(response);
+  },
+
+  verify2FA: async (token: string, verificationCode: string) => {
+    const response = await fetch(`${API_URL}/auth/2fa/verify`, {
+      method: "POST",
+      headers: { 
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ token: verificationCode }),
+    });
+    return handleResponse(response);
+  },
+
+  disable2FA: async (token: string, password: string, twoFactorCode: string) => {
+    const response = await fetch(`${API_URL}/auth/2fa/disable`, {
+      method: "POST",
+      headers: { 
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ password, twoFactorCode }),
     });
     return handleResponse(response);
   }

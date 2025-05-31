@@ -4,6 +4,7 @@ export interface User {
   username: string;
   email: string;
   role: "USER" | "ADMIN";
+  twoFactorEnabled?: boolean;
 }
 
 export interface LogEntry {
@@ -49,4 +50,10 @@ export interface Statistics {
   totalAppointments: number;
   busiestDoctor: string;
   popularDepartment: string;
+}
+
+export interface TwoFactorSetup {
+  secret: string;
+  qrCode: string;
+  manualEntryKey: string;
 }

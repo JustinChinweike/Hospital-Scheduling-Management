@@ -9,6 +9,7 @@ import EditSchedulePage from "./pages/EditSchedulePage";
 import ListSchedulePage from "./pages/ListSchedulePage";
 import AuthPage from "./pages/AuthPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
+import ProfilePage from "./pages/ProfilePage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { Toaster } from "./components/ui/toaster";
@@ -84,6 +85,11 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            } />
             <Route path="/admin" element={
               <AdminRoute>
                 <AdminDashboardPage />

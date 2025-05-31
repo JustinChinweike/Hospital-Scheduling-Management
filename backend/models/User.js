@@ -30,6 +30,14 @@ const User = sequelize.define('User', {
     type: DataTypes.ENUM('USER', 'ADMIN'),
     defaultValue: 'USER',
   },
+  twoFactorSecret: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  twoFactorEnabled: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
 }, {
   hooks: {
     beforeCreate: async (user) => {
