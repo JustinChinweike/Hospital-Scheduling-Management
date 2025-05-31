@@ -46,7 +46,7 @@ const Navigation = () => {
               <User className="w-4 h-4" />
               <span className="font-medium">{user.username}</span>
               {user.twoFactorEnabled && (
-                <ShieldCheck className="w-4 h-4 text-green-600" title="2FA Enabled" />
+                <ShieldCheck className="w-4 h-4 text-green-600" />
               )}
             </div>
             <div className="text-xs text-gray-600">{user.email}</div>

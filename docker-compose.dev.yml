@@ -1,0 +1,51 @@
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  database:
+    image: postgres:15-alpine
+    container_name: hospital_db_dev
+    environment:
+      POSTGRES_DB: hospital_schedule
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "@Justin2020"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - hospital_network
+
+  # Backend API (Development mode)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hospital_backend_dev
+    environment:
+      NODE_ENV: development
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_NAME: hospital_schedule
+      DB_USER: postgres
+      DB_PASSWORD: "@Justin2020"
+      JWT_SECRET: hDk7S9mLpQ2xR5vT8nY3zX6cB1aE4gF0jW3pL7dK9sM
+      PORT: 5000
+    ports:
+      - "5000:5000"
+    depends_on:
+      - database
+    networks:
+      - hospital_network
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev
+
+volumes:
+  postgres_dev_data:
+
+networks:
+  hospital_network:
+    driver: bridge
