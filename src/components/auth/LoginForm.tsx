@@ -135,11 +135,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? "Logging in..." : "Login"}
       </Button>
-      <div className="text-sm text-center text-gray-500">
-        <p>For testing:</p>
-        <p>Admin: admin@example.com / password</p>
-        <p>User: user@example.com / password</p>
-      </div>
+  
     </form>
   );
 };
