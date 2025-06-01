@@ -1,7 +1,9 @@
 
 import { Schedule, User, LogEntry, MonitoredUser, TwoFactorSetup } from "../types";
 
-const API_URL = "http://localhost:5000";
+ // Tries env first (Railway), falls back to localhost for local dev
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 
 // Helper to handle API responses
 const handleResponse = async (response: Response) => {
