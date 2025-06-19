@@ -1,28 +1,42 @@
 
-# Hospital Scheduler System
+# Hospital Scheduling Management System
 
-This project implements a hospital scheduler system with both frontend and backend components.
+**Hospital Scheduling Management System** is a full-stack web application designed to manage patient appointments, doctor schedules, and overall appointment workflows in a hospital or clinic. It provides interfaces for staff to schedule appointments, assign doctors to patients, and monitor scheduling activity via an admin dashboard.
 
 ## Features
 
-### Bronze Tier Features
-- Database relationships between entities (Users, Schedules, Logs, MonitoredUsers)
-- Full CRUD operations for schedules
-- Filtering and sorting on the schedule list
-- ORM (Sequelize) for database operations
+- **Appointment Scheduling:** Create, view, and manage hospital appointment slots with details like doctor, patient, date/time, and department.
+- **User Management & Authentication:** Secure login and registration with JWT-based authentication. Supports role-based access control with Regular Users (scheduling staff) and Admins.
+- **Two-Factor Authentication (2FA):** Option to enable 2FA for accounts, providing an extra layer of security for login (using OTP codes).
+- **Filtering & Search:** Easily filter and sort the schedule list (e.g., by date, doctor, department) to find appointments.
+- **Admin Dashboard:** Admin users can view system logs and a list of monitored users. A background monitoring service flags suspicious activity (e.g. unusually high scheduling rates or potential attacks) and highlights these in the admin dashboard.
+- **Audit Logging:** All create, update, or delete actions on schedules are logged for security and auditing purposes.
+- **Performance at Scale:** The system is optimized to handle a large volume of appointments (seeded with 100,000+ sample records for testing) with indexing and optimized queries for statistics.
+- **Health Monitoring:** Provides a health check endpoint (`/health`) for infrastructure monitoring, and uses real-time notifications (via WebSocket/Socket.io) to detect clients connecting/disconnecting (foundation for real-time updates).
 
-### Silver Tier Features
-- Database seeding with 100,000+ entries
-- Performance optimized database with indices
-- Complex query optimization for statistics
+## Technologies Used
 
-### Gold Tier Features
-- User authentication (register/login)
-- User roles (Regular User and Admin)
-- Logging system for all CRUD operations
-- Background monitoring thread that detects suspicious activity
-- Admin dashboard with monitored users list and activity logs
-- Simulated attack scenario
+- **Frontend:** React (TypeScript) with Vite as the build tool. UI components and styling are done with Tailwind CSS and Radix UI for accessible, pre-built components.
+- **Backend:** Node.js with Express.js framework for building a RESTful API. Uses Sequelize (SQL ORM) to interact with a PostgreSQL database.
+- **Database:** PostgreSQL for data persistence, with relations set up between Users and Schedules. Includes seed scripts to populate initial data.
+- **Authentication & Security:** JSON Web Tokens (JWT) for auth sessions, BCrypt for password hashing (in user model), and Speakeasy for handling 2FA TOTP codes. CORS enabled for API, and input validation is handled via Zod schemas.
+- **Real-time & Others:** Socket.io is configured on the backend (prepared for real-time features or future live updates). Logging with Morgan for development, and Docker for containerization.
+- **Deployment:** Docker and Docker Compose are used to containerize the application (frontend, backend, and database). The application is deployed on Railway (PaaS) for production.
+
+## Live Demo
+
+A live deployment of the application is available on **Railway**:
+
+- **Frontend Live URL:** https://frontend-production-5fd8.up.railway.app  
+_(You can access the web app using the above link. Note that the backend API is also hosted on Railway and the frontend is configured to communicate with it.)_
+
+**Default test credentials:**  
+- Admin user – Email: `admin@example.com`, Password: `password`  
+- Regular user – Email: `user@example.com`, Password: `password`  
+
+You can use the above accounts to log in and explore the features (Admin accounts can view the admin dashboard).
+
+
 
 ## Project Setup Instructions
 
