@@ -112,16 +112,15 @@ Use the demo credentials below:
 
 ## Using the Application
 
-### Admin View
+### **Admin View**
+- **Access Logs:** View logs of all create, update, and delete operations performed in the system.
+- **User Monitoring:** View flagged users identified by the backend’s monitoring thread.
 
-- **Access Logs:** Admins can view logs of all create, update, and delete operations performed throughout the system.
-- **User Monitoring:** Admins can see a list of flagged users identified by the backend's real-time monitoring thread. This helps detect suspicious scheduling activity (e.g., abnormally high frequency of operations).
+### **Regular User View**
+- **View Schedules:** Log in and view scheduled appointments.
+- **Manage Appointments:** Add, update, or delete appointments depending on access level.
 
-### Regular User View
-
-- **View Schedules:** Users can log in and access the schedule dashboard to view appointments.
-- **Manage Appointments:** Users have permission to add, update, or delete hospital appointments, based on their access level.
-
+---
 
 ## Troubleshooting
 
@@ -135,6 +134,7 @@ Use the demo credentials below:
 - Clear browser cache if you experience unexpected behaviors
 - Check the browser console for any error messages
 
+---
 
 ## Security Features
 
