@@ -1,73 +1,147 @@
+# Hospital Scheduling Management System
 
-# Hospital Scheduling System Backend
+**Hospital Scheduling Management System** is a full-stack web application designed to manage appointments, doctor-patient scheduling, and system monitoring workflows in a hospital or clinic. It provides interfaces for staff to manage appointments, assign doctors, and monitor activities through an admin dashboard.
 
-This backend implements a complete solution for the Hospital Scheduling System, meeting Bronze, Silver, and Gold tier requirements.
+---
 
-## Setup Instructions
+## Features
 
-1. Install dependencies:
+- **Appointment Scheduling:** Add, view, update, and delete hospital appointment records with assigned doctors, departments, and timestamps.
+- **User Authentication & Roles:** JWT-based login system supporting both Admin and Regular User roles.
+- **Two-Factor Authentication (2FA):** Optional 2FA via time-based OTP (TOTP) for secure logins.
+- **Search & Filters:** Intuitive schedule filtering and sorting by date, doctor, department, etc.
+- **Admin Dashboard:** Visual logs of system activity and flagged user behavior via monitoring thread.
+- **Audit Logging:** All schedule modifications (create, update, delete) are stored securely.
+- **Scalability:** Seeded with over 100,000 schedule entries to test large-scale performance.
+- **Health Monitoring:** `/health` endpoint and real-time socket events (connect/disconnect detection) for operational visibility.
+
+---
+
+
+## Technologies Used
+
+- **Frontend:** React (TypeScript), Vite, Tailwind CSS, Radix UI
+- **Backend:** Node.js, Express.js, Socket.IO
+- **Database:** PostgreSQL with Sequelize ORM
+- **Security:** JWT, Bcrypt (password hashing), Speakeasy (2FA), Zod (validation), CORS
+- **DevOps:** Docker, Docker Compose, Railway (PaaS)
+- **Tooling:** ESLint, Prettier, Morgan (logging)
+
+---
+
+
+## Live Demo
+
+The application is deployed on **Railway**:
+
+🔗 **Frontend:** [https://frontend-production-5fd8.up.railway.app](https://frontend-production-5fd8.up.railway.app)
+
+Use the demo credentials below:
+
+- **Admin User:**  
+  Email: `admin@example.com`  
+  Password: `password`
+
+- **Regular User:**  
+  Email: `user@example.com`  
+  Password: `password`
+
+---
+
+## Project Setup Instructions
+
+### Prerequisites
+- Node.js (v14 or higher)
+- npm or yarn
+- PostgreSQL
+
+---
+### Setting Up the Backend
+
+1. Navigate to the backend directory:
+   ```
+   cd backend
+   ```
+
+2. Install the required dependencies:
    ```
    npm install
    ```
 
-2. Set up PostgreSQL database:
+3. Set up your PostgreSQL database:
    - Make sure PostgreSQL is installed and running
-   - Create a database named `hospital_scheduler`
-   - Update `.env` file with your database credentials if needed
+   - Create a database named `hospital_schedule`
+   - Update the `.env` file with your database credentials if needed
 
-3. Run database seed script to create initial data:
+4. Seed the database with initial data:
    ```
    npm run seed
    ```
    This will create:
    - Admin user: admin@example.com / password
    - Regular user: user@example.com / password
-   - 100,000 sample schedule records
+   - 100,000+ sample schedule records
 
-4. Start the server:
+5. Start the backend server:
    ```
    npm run dev
    ```
+   The backend server will run on http://localhost:5000
 
-## Features Implemented
+### Setting Up the Frontend
+1. Open a new terminal and navigate to the project root directory
 
-### Bronze Tier
-- Database relationships (one-to-many between User and Schedule)
-- Complete CRUD operations for schedules
-- Filtering and sorting capabilities
-- Uses Sequelize ORM
+2. Install frontend dependencies:
+   ```
+   npm install
+   ```
 
-### Silver Tier
-- Database populated with 100,000+ entries
-- Performance optimizations (indexes)
-- Optimized queries for statistics
+3. Create a `.npmrc` file in the root directory with the following content:
+   ```
+   legacy-peer-deps=true
+   ```
+4. Create .env for the frontend and set API URL:
+   ```
+   VITE_API_URL=http://localhost:5000
+   ```
+5. Start the frontend development server:
+   ```
+   npm run dev
+   ```
+   The frontend application will be available at http://localhost:8080
 
-### Gold Tier
-- Authentication system (register/login)
-- User roles (Admin and Regular User)
-- Complete logging system
-- Background monitoring thread
-- Admin dashboard API
-- Simulated attack detection
+## Using the Application
 
-## API Documentation
+### **Admin View**
+- **Access Logs:** View logs of all create, update, and delete operations performed in the system.
+- **User Monitoring:** View flagged users identified by the backend’s monitoring thread.
 
-### Authentication
-- POST /auth/register - Register a new user
-- POST /auth/login - Login
-- GET /auth/me - Get current user info
+### **Regular User View**
+- **View Schedules:** Log in and view scheduled appointments.
+- **Manage Appointments:** Add, update, or delete appointments depending on access level.
 
-### Schedules
-- GET /schedules - List schedules with filtering options
-- POST /schedules - Create schedule
-- GET /schedules/:id - Get a specific schedule
-- PATCH /schedules/:id - Update a schedule
-- DELETE /schedules/:id - Delete a schedule
+---
 
-### Admin
-- GET /admin/monitored-users - List suspicious users
-- GET /admin/logs - Get system logs
-- GET /admin/statistics - Get system statistics
+## Troubleshooting
 
-### Utility
-- GET /health - System health check
+### Backend Issues
+- Ensure PostgreSQL is running and accessible
+- Check that the database credentials in the `.env` file are correct
+- Verify that port 5000 is not in use by another application
+
+### Frontend Issues
+- If you encounter dependency conflicts, ensure the `.npmrc` file contains `legacy-peer-deps=true`
+- Clear browser cache if you experience unexpected behaviors
+- Check the browser console for any error messages
+
+---
+
+## Security Features
+
+The system includes a monitoring thread that detects suspicious activity:
+- Tracks users with high activity rates
+- Identifies potential attack patterns
+- Alerts admins via the dashboard
+
+
+
