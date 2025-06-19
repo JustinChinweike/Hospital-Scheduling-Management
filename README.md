@@ -3,27 +3,6 @@
 
 This is a full-stack web application designed to manage appointments, doctor-patient scheduling, and system monitoring workflows in a hospital or clinic. It provides interfaces for staff to manage appointments, assign doctors, and monitor activities through an admin dashboard.
 
-## Features
-
-### Bronze Tier Features
-- Database relationships between entities (Users, Schedules, Logs, MonitoredUsers)
-- Full CRUD operations for schedules
-- Filtering and sorting on the schedule list
-- ORM (Sequelize) for database operations
-
-### Silver Tier Features
-- Database seeding with 100,000+ entries
-- Performance optimized database with indices
-- Complex query optimization for statistics
-
-### Gold Tier Features
-- User authentication (register/login)
-- User roles (Regular User and Admin)
-- Logging system for all CRUD operations
-- Background monitoring thread that detects suspicious activity
-- Admin dashboard with monitored users list and activity logs
-- Simulated attack scenario
-
 
 ## Technologies Used
 
