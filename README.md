@@ -6,12 +6,18 @@ This is a full-stack web application designed to manage appointments, doctor-pat
 
 ## Technologies Used
 
-- Frontend: React (TypeScript), Vite, Tailwind CSS, Radix UI
-- Backend: Node.js, Express.js, Socket.IO
-- Database: PostgreSQL with Sequelize ORM
-- Security: JWT, Bcrypt (password hashing), Speakeasy (2FA), Zod (validation), CORS
-- DevOps: Docker, Docker Compose, Railway (PaaS)
-- Tooling: ESLint, Prettier, Morgan (logging)
+- **Frontend:** React (TypeScript), Vite, Tailwind CSS, Radix UI
+- **Backend:** Node.js, Express.js, Socket.IO
+- **Database:** PostgreSQL with Sequelize ORM
+- **Security:** JWT, Bcrypt (password hashing), Speakeasy (2FA), Zod (validation), CORS
+- **DevOps:** Docker, Docker Compose, Railway (PaaS)
+- **Tooling:** ESLint, Prettier, Morgan (logging)
+
+## Live Demo
+
+The application is deployed on **Railway**:
+
+🔗 **Frontend:** [https://frontend-production-5fd8.up.railway.app](https://frontend-production-5fd8.up.railway.app)
 
 
 ## Project Setup Instructions
