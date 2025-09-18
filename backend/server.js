@@ -1,5 +1,6 @@
 
 import express from 'express';
+import path from 'path';
 import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
@@ -9,11 +10,19 @@ import sequelize from './config/database.js';
 import authRoutes from './routes/authRoutes.js';
 import scheduleRoutes from './routes/scheduleRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import overbookRoutes from './routes/overbookRoutes.js';
 
 // Monitoring thread
-import './utils/monitoringThread.js';
+import { startMonitoring } from './utils/monitoringThread.js';
 
 dotenv.config();
+
+// Basic required env validation
+const requiredEnv = ['JWT_SECRET','DB_HOST','DB_PORT','DB_NAME','DB_USER','DB_PASSWORD'];
+const missing = requiredEnv.filter(k => !process.env[k]);
+if (missing.length) {
+  console.warn(`⚠️  Missing environment variables: ${missing.join(', ')}. The server may fail to start.`);
+}
 
 const app = express();
 const server = http.createServer(app);
@@ -30,6 +39,8 @@ export const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
+// Serve uploaded files
+app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 
 // Simple health check endpoint
 app.get('/health', (req, res) => {
@@ -40,6 +51,7 @@ app.get('/health', (req, res) => {
 app.use('/auth', authRoutes);
 app.use('/schedules', scheduleRoutes);
 app.use('/admin', adminRoutes);
+app.use('/overbook', overbookRoutes);
 
 // Socket.io event handlers
 io.on('connection', (socket) => {
@@ -53,13 +65,20 @@ io.on('connection', (socket) => {
 // Initialize database and start server
 const PORT = process.env.PORT || 5000;
 
-sequelize
-  .sync()
-  .then(() => {
-    server.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error('Unable to connect to the database:', err);
-  });
+const start = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('✅ Database connection established');
+  await sequelize.sync({ alter: true });
+  startMonitoring(io);
+    server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+  } catch (err) {
+    console.error('❌ Failed to start server (message):', err?.message || 'No message');
+    console.error('❌ Full error object:', err);
+    if (err?.stack) console.error('❌ Stack:', err.stack);
+  console.error(`\nTroubleshooting Steps:\n 1. Ensure backend/.env exists (copy from .env.example)\n 2. Confirm PostgreSQL running and reachable (psql or docker logs)\n 3. Verify DB credentials & user permissions\n 4. If using Docker: run 'docker ps' to confirm db container healthy\n 5. If still failing, try: npx sequelize-cli db:migrate (if migrations added).`);
+    // Do not exit immediately so nodemon shows full logs & allows editing
+  }
+};
+
+start();

@@ -1,146 +1,118 @@
-# Hospital Scheduling Management System
+## Hospital Scheduling Management
 
-**Hospital Scheduling Management System** is a full-stack web application designed to manage appointments, doctor-patient scheduling, and system monitoring workflows in a hospital or clinic. It provides interfaces for staff to manage appointments, assign doctors, and monitor activities through an admin dashboard.
+A practical scheduling system for clinics and hospitals. It handles day‑to‑day bookings, avoids conflicts, suggests safe overbooking, works offline, and ships with a simple admin view.
 
----
+— Updated: September 2025
+
+**What this shows recruiters**
+- Real-world calendar UX (drag, resize, details, filters, exports)
+- Clear API boundaries and auth flows (JWT + 2FA)
+- Live updates with sockets and offline PWA support
+- Thoughtful error handling and useful defaults
 
 ## Features
+- Calendar: drag/resize, quick-create, details dialog, backfill empty slots
+- Conflict prevention: blocks overlapping bookings per doctor (±1 hour)
+- Overbooking tools: suggestions, Accept/Decline, waitlist invite/confirm
+- Filters: department and doctor with URL sync (shareable links)
+- Exports: CSV and ICS with safe row caps
+- Auth: login/register, 2FA, profile avatar, session management
+- PWA: precaching, runtime caching, and offline fallbacks
+- Admin: monitored users, activity logs CSV
 
-- **Appointment Scheduling:** Add, view, update, and delete hospital appointment records with assigned doctors, departments, and timestamps.
-- **User Authentication & Roles:** JWT-based login system supporting both Admin and Regular User roles.
-- **Two-Factor Authentication (2FA):** Optional 2FA via time-based OTP (TOTP) for secure logins.
-- **Search & Filters:** Intuitive schedule filtering and sorting by date, doctor, department, etc.
-- **Admin Dashboard:** Visual logs of system activity and flagged user behavior via monitoring thread.
-- **Audit Logging:** All schedule modifications (create, update, delete) are stored securely.
-- **Scalability:** Seeded with over 100,000 schedule entries to test large-scale performance.
-- **Health Monitoring:** `/health` endpoint and real-time socket events (connect/disconnect detection) for operational visibility.
+## Stack
+- Frontend: React + TypeScript, Vite, Tailwind + shadcn UI, FullCalendar, Socket.IO client
+- Backend: Node.js (Express), PostgreSQL via Sequelize, JWT, Nodemailer, Socket.IO
 
----
+## Quick Start (Windows PowerShell)
+Prereqs: Node 18+, PostgreSQL running locally with a database you can use.
 
+1) Backend
+```powershell
+cd backend
+npm install
+# Create .env (see below), then seed demo data
+npm run seed
+$env:FRONTEND_URL="http://localhost:5173"; npm run dev
+```
+Server: `http://localhost:5000`
 
-## Technologies Used
+2) Frontend
+```powershell
+cd ..\frontend
+npm install
+$env:VITE_API_URL="http://localhost:5000"; npm run dev
+```
+App: `http://localhost:5173`
 
-- **Frontend:** React (TypeScript), Vite, Tailwind CSS, Radix UI
-- **Backend:** Node.js, Express.js, Socket.IO
-- **Database:** PostgreSQL with Sequelize ORM
-- **Security:** JWT, Bcrypt (password hashing), Speakeasy (2FA), Zod (validation), CORS
-- **DevOps:** Docker, Docker Compose, Railway (PaaS)
-- **Tooling:** ESLint, Prettier, Morgan (logging)
+Demo logins (after seeding)
+- Admin: `admin@example.com` / `password`
+- User: `user@example.com` / `password`
 
----
+## Environment
+Backend `.env` (example)
+```
+PORT=5000
+JWT_SECRET=replace-with-long-random-string
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=hospital_schedule
+DB_USER=postgres
+DB_PASSWORD=postgres_password
+MAX_EXPORT_ROWS=5000
+FRONTEND_URL=http://localhost:5173
+# Optional SMTP for real emails
+SMTP_HOST=
+SMTP_PORT=
+SMTP_USER=
+SMTP_PASS=
+SMTP_SECURE=false
+SMTP_FROM="Scheduler <no-reply@example.com>"
+```
 
+Frontend `.env`
+```
+VITE_API_URL=http://localhost:5000
+```
 
-## Live Demo
+## How to Use
+- Create: select a slot or use quick-create; 1‑hour default
+- Edit: click an event → Edit, Save; or drag/resize on the grid
+- Delete: click → Delete (with confirm)
+- Backfill: open “Backfill now” to invite the top waitlist match
+- Suggestions: faint events → Accept/Decline
+- Filters: set department/doctor → Apply (URL updates)
+- Export: download CSV/ICS from the calendar actions
 
-The application is deployed on **Railway**:
+## Scheduling Rules
+- One appointment per doctor per hour (±1h conflict guard)
+- Cancelling can auto‑invite waitlist if Overbooking is enabled
 
-🔗 **Frontend:** [https://frontend-production-5fd8.up.railway.app](https://frontend-production-5fd8.up.railway.app)
+## API Overview (selected)
+- Auth: register, login, 2FA setup/verify, password reset, email change verify
+- Schedules: CRUD, CSV/ICS export, range‑based fetch
+- Overbooking: suggestions, accept/decline, waitlist join, invite, public confirm
+- Admin: logs CSV, monitored users
 
-Use the demo credentials below:
-
-- **Admin User:**  
-  Email: `admin@example.com`  
-  Password: `password`
-
-- **Regular User:**  
-  Email: `user@example.com`  
-  Password: `password`
-
----
-
-## Project Setup Instructions
-
-### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn
-- PostgreSQL
-
----
-### Setting Up the Backend
-
-1. Navigate to the backend directory:
-   ```
-   cd backend
-   ```
-
-2. Install the required dependencies:
-   ```
-   npm install
-   ```
-
-3. Set up your PostgreSQL database:
-   - Make sure PostgreSQL is installed and running
-   - Create a database named `hospital_schedule`
-   - Update the `.env` file with your database credentials if needed
-
-4. Seed the database with initial data:
-   ```
-   npm run seed
-   ```
-   This will create:
-   - Admin user: admin@example.com / password
-   - Regular user: user@example.com / password
-   - 100,000+ sample schedule records
-
-5. Start the backend server:
-   ```
-   npm run dev
-   ```
-   The backend server will run on http://localhost:5000
-
-### Setting Up the Frontend
-1. Open a new terminal and navigate to the project root directory
-
-2. Install frontend dependencies:
-   ```
-   npm install
-   ```
-
-3. Create a `.npmrc` file in the root directory with the following content:
-   ```
-   legacy-peer-deps=true
-   ```
-4. Create .env for the frontend and set API URL:
-   ```
-   VITE_API_URL=http://localhost:5000
-   ```
-5. Start the frontend development server:
-   ```
-   npm run dev
-   ```
-   The frontend application will be available at http://localhost:8080
-
-## Using the Application
-
-### **Admin View**
-- **Access Logs:** View logs of all create, update, and delete operations performed in the system.
-- **User Monitoring:** View flagged users identified by the backend’s monitoring thread.
-
-### **Regular User View**
-- **View Schedules:** Log in and view scheduled appointments.
-- **Manage Appointments:** Add, update, or delete appointments depending on access level.
-
----
+## Repo Layout
+```
+backend/
+  controllers/, models/, routes/, utils/
+frontend/
+  public/ (sw.js, offline.html, icons, manifest)
+  src/ (pages, components, context, services)
+```
 
 ## Troubleshooting
+- Invite failed: often “No candidates” for that slot/filters
+- Filters not sticking: click Apply; URL should show `?department=..&doctor=..`
+- PWA cache: close tabs, hard refresh, or uninstall the SW in DevTools
+- DB connect issues: check `.env` and that Postgres is running
 
-### Backend Issues
-- Ensure PostgreSQL is running and accessible
-- Check that the database credentials in the `.env` file are correct
-- Verify that port 5000 is not in use by another application
+## Deployment
+- Docker and Railway files included. For a quick deploy, set backend `.env` and `VITE_API_URL` on the frontend to the public backend URL, then build and serve the frontend.
 
-### Frontend Issues
-- If you encounter dependency conflicts, ensure the `.npmrc` file contains `legacy-peer-deps=true`
-- Clear browser cache if you experience unexpected behaviors
-- Check the browser console for any error messages
-
----
-
-## Security Features
-
-The system includes a monitoring thread that detects suspicious activity:
-- Tracks users with high activity rates
-- Identifies potential attack patterns
-- Alerts admins via the dashboard
-
+## Notes
+- This project is for learning and showcasing full‑stack skills.
+- No license specified.
 

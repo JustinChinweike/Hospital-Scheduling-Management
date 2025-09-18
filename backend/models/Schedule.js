@@ -25,6 +25,11 @@ const Schedule = sequelize.define('Schedule', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  overbooked: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
 });
 
 // Each schedule belongs to a user who created it

@@ -13,6 +13,19 @@ const MonitoredUser = sequelize.define('MonitoredUser', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  pattern: {
+    type: DataTypes.ENUM('HIGH_ACTIVITY','AUTH_FAILURES','UNKNOWN'),
+    allowNull: false,
+    defaultValue: 'UNKNOWN'
+  },
+  activityCount: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  failureCount: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
   detectedAt: {
     type: DataTypes.DATE,
     allowNull: false,

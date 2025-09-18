@@ -38,6 +38,10 @@ const User = sequelize.define('User', {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  avatarUrl: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
 }, {
   hooks: {
     beforeCreate: async (user) => {
