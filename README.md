@@ -110,7 +110,7 @@ frontend/
 - DB connect issues: check `.env` and that Postgres is running
 
 ## Deployment
-- Docker and Railway files included. For a quick deploy, set backend `.env` and `VITE_API_URL` on the frontend to the public backend URL, then build and serve the frontend.
+See `DEPLOYMENT.md` for a full Render-only blueprint workflow using `render.yaml` (managed Postgres, backend web service, static frontend). Environment vars: backend needs `JWT_SECRET`, `DATABASE_URL`, `FRONTEND_URL`; frontend needs `VITE_API_URL`.
 
 ## Notes
 - This project is for learning and showcasing full‑stack skills.

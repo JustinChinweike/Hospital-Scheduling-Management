@@ -27,16 +27,23 @@ if (missing.length) {
 const app = express();
 const server = http.createServer(app);
 
-// Set up Socket.io with CORS settings
+// Determine allowed origin (fallback to wildcard only if not provided)
+const allowedOrigin = process.env.FRONTEND_URL || '*';
+
+// Set up Socket.io with tightened CORS settings
 export const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: allowedOrigin,
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    credentials: true,
   },
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigin,
+  credentials: true,
+}));
 app.use(express.json());
 app.use(morgan('dev'));
 // Serve uploaded files
