@@ -26,11 +26,11 @@ export const authAPI = {
     return handleResponse(response);
   },
 
-  register: async (username: string, email: string, password: string) => {
+  register: async (username: string, email: string, password: string, adminInviteCode?: string) => {
     const response = await fetch(`${API_URL}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ username, email, password, adminInviteCode }),
     });
     return handleResponse(response);
   },

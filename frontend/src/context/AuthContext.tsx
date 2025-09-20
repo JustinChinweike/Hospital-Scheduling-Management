@@ -9,7 +9,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   login: (email: string, password: string, twoFactorCode?: string) => Promise<boolean | "2FA_REQUIRED">;
-  register: (username: string, email: string, password: string) => Promise<boolean>;
+  register: (username: string, email: string, password: string, adminInviteCode?: string) => Promise<boolean>;
   logout: () => void;
   logs: LogEntry[];
   monitoredUsers: MonitoredUser[];
@@ -140,9 +140,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
   
-  const register = async (username: string, email: string, password: string): Promise<boolean> => {
+  const register = async (username: string, email: string, password: string, adminInviteCode?: string): Promise<boolean> => {
     try {
-      const data = await authAPI.register(username, email, password);
+      const data = await authAPI.register(username, email, password, adminInviteCode);
       
       if (data.token) {
         setToken(data.token);

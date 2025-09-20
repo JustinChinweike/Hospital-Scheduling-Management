@@ -19,6 +19,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [adminInviteCode, setAdminInviteCode] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +36,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
     setIsLoading(true);
     
     try {
-      const success = await register(username, email, password);
+  const code = adminInviteCode.trim() || undefined;
+  const success = await register(username, email, password, code);
       
       if (success) {
         toast({
@@ -98,6 +100,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="admin-invite">Admin Invite Code (optional)</Label>
+        <Input
+          id="admin-invite"
+          placeholder="Provide code only if authorized"
+          value={adminInviteCode}
+          onChange={(e) => setAdminInviteCode(e.target.value)}
+        />
+        <p className="text-xs text-muted-foreground">First account auto-admin. Later admins require a valid invite code.</p>
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? "Creating account..." : "Register"}

@@ -7,6 +7,15 @@ Simple, reliable, free (within limits):
 - Frontend (static React build): Vercel
 
 ---
+### Live Demo & Short Description
+This system provides a production‑ready workflow for hospital / clinic appointment scheduling with conflict prevention, controlled overbooking (waitlist + suggestions), realtime updates via websockets, and offline‑capable PWA behavior.
+
+Frontend (production): https://hospital-scheduling-management.vercel.app  
+Backend health: https://hospital-backend-chinw.fly.dev/health
+
+Use the frontend URL to explore the UI. The backend URL intentionally has no root route (only API + `/health`).
+
+---
 ## 1. Prerequisites
 Install: `flyctl`, `node 18+`, `git`. Create accounts: Fly.io, Neon, Vercel.
 
@@ -39,6 +48,8 @@ fly secrets set \
   JWT_SECRET=<long-random> \
   DATABASE_URL="postgres://user:pass@host:5432/db" \
   FRONTEND_URL=https://<your-frontend>.vercel.app \
+  # Optional: set to enable controlled creation of additional admins after first bootstrap
+  ADMIN_INVITE_CODE=<admin-invite-secret> \
   EMAIL_USER=<optional-smtp-user> \
   EMAIL_PASS=<optional-smtp-pass>
 ```
@@ -93,6 +104,8 @@ VITE_API_URL=https://hospital-backend-<yourid>.fly.dev
 ---
 ## 6. Functional Verification
 1. Visit frontend → register/login.
+  - First ever account (no existing admins) auto-promotes to ADMIN (bootstrap).
+  - Subsequent admin creation: provide `ADMIN_INVITE_CODE` in the "Admin Invite Code" field during registration.
 2. Create & drag an event; open second browser window to verify realtime (Socket.IO via Fly).
 3. Export CSV/ICS.
 4. Overbooking suggestion flow (if triggered) works.

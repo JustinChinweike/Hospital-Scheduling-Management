@@ -36,7 +36,8 @@ export const authenticate = async (req, res, next) => {
 };
 
 export const isAdmin = (req, res, next) => {
-  if (req.user.role !== 'ADMIN') {
+  const role = (req.user.role || '').toUpperCase();
+  if (role !== 'ADMIN') {
     return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
   }
   next();

@@ -17,7 +17,7 @@ dotenv.config();
 // Register a new user
 export const register = async (req, res) => {
   try {
-    let { username, email, password } = req.body;
+    let { username, email, password, adminInviteCode } = req.body;
 
     if (!username || !email || !password) {
       return res.status(400).json({ message: 'username, email, password required' });
@@ -37,16 +37,30 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
+    // Determine role: bootstrap first admin or verify invite code
+    let role = 'USER';
+    const adminCount = await User.count({ where: { role: 'ADMIN' } });
+    if (adminCount === 0) {
+      role = 'ADMIN';
+    } else if (adminInviteCode) {
+      const expected = process.env.ADMIN_INVITE_CODE;
+      if (expected && adminInviteCode === expected) {
+        role = 'ADMIN';
+      } else {
+        return res.status(403).json({ message: 'Invalid admin invite code' });
+      }
+    }
+
     // Create new user
     const user = await User.create({
       username,
       email,
       password,
-      role: 'USER', // Default role for new users
+      role,
     });
 
     // Generate JWT token
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: '1d',
     });
 
@@ -130,7 +144,7 @@ export const login = async (req, res) => {
 
     // Generate JWT token with jti for session tracking
     const jti = crypto.randomUUID();
-    const token = jwt.sign({ id: user.id, jti }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user.id, role: user.role, jti }, process.env.JWT_SECRET, {
       expiresIn: '1d',
     });
 
