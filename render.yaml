@@ -18,7 +18,7 @@ services:
       - key: FRONTEND_URL
         sync: false
     healthCheckPath: /health
-  - type: static_site
+  - type: static
     name: hospital-frontend
     rootDir: frontend
     buildCommand: npm install && npm run build
