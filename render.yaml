@@ -6,6 +6,7 @@ services:
     buildCommand: npm install
     startCommand: node server.js
     plan: free
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
@@ -17,10 +18,9 @@ services:
         sync: false
       - key: FRONTEND_URL
         sync: false
-    healthCheckPath: /health
-  - type: web
-    name: hospital-frontend
-    env: static
+
+staticSites:
+  - name: hospital-frontend
     rootDir: frontend
     buildCommand: npm install && npm run build
     publishPath: dist
