@@ -1,11 +1,14 @@
-<!-- Render-specific deployment guide -->
-# Deployment (Render Platform Only)
+<!-- Multi-platform free deployment guide (Render removed) -->
+# Deployment (Backend: Fly.io + Postgres | Frontend: Vercel)
 
-Single platform: Render hosts the backend (Node), the frontend (static), and a managed PostgreSQL instance. We use `render.yaml` for reproducible setup.
+Simple, reliable, free (within limits):
+- Backend API & websockets: Fly.io (Docker container)
+- PostgreSQL: Neon (serverless) free tier
+- Frontend (static React build): Vercel
 
 ---
 ## 1. Prerequisites
-Have: GitHub repo pushed (main branch), Render account, Node 18+ locally for sanity tests.
+Install: `flyctl`, `node 18+`, `git`. Create accounts: Fly.io, Neon, Vercel.
 
 Local quick test (optional):
 ```bash
@@ -14,147 +17,140 @@ npm install
 npm run dev
 curl http://localhost:5000/health
 ```
-Expect `{ "status": "ok" }`.
 
 ---
-## 2. Commit infra file
-Ensure `render.yaml` exists at repo root (already added). If you edited it:
+## 2. Create Postgres (Neon)
+Create a Neon project → copy the connection string (standard format `postgres://user:pass@host:port/db?sslmode=require`). Keep `DATABASE_URL` ready.
+
+---
+## 3. Fly.io Backend Deploy
+Create the app (interactive) OR edit existing `backend/fly.toml`:
 ```bash
-git add render.yaml
-git commit -m "chore: render infra"
-git push origin main
+cd backend
+fly launch --name hospital-backend-<yourid> --no-deploy --copy-config
+```
+If you already added `fly.toml` you can skip generating a new one. Adjust `app` and `primary_region` fields.
+
+Set secrets (only DATABASE_URL OR DB_* set):
+```bash
+fly secrets set \
+  NODE_ENV=production \
+  PORT=5000 \
+  JWT_SECRET=<long-random> \
+  DATABASE_URL="postgres://user:pass@host:5432/db" \
+  FRONTEND_URL=https://<your-frontend>.vercel.app \
+  EMAIL_USER=<optional-smtp-user> \
+  EMAIL_PASS=<optional-smtp-pass>
+```
+
+Deploy:
+```bash
+fly deploy --build-only # (optional warm build)
+fly deploy
+```
+Logs & health:
+```bash
+fly logs
+curl https://hospital-backend-<yourid>.fly.dev/health
+```
+
+### 3.1 Database Migrations / Sync & Seed
+Sequelize `sync({ alter: true })` runs automatically. To seed sample data:
+```bash
+fly ssh console -C "node seedDatabase.js"
 ```
 
 ---
-## 3. Create Render PostgreSQL
-1. In Render dashboard → New → PostgreSQL.
-2. Name it (e.g. `hospital-db`) → Free plan.
-3. After creation copy the `External Connection String` (that is your `DATABASE_URL`).
-4. (Optional) Set `Force SSL` → then add `DB_SSL=true` env var if required.
+## 4. Frontend (Vercel)
+1. Import GitHub repo in Vercel → set root = `frontend`.
+2. Build command: `npm run build`  | Output dir: `dist` | Framework: Vite.
+3. Env var:
+```
+VITE_API_URL=https://hospital-backend-<yourid>.fly.dev
+```
+4. Deploy → note final Vercel URL.
+5. (Optional) Custom domain → add in Vercel; then update Fly secret `FRONTEND_URL` to new domain:
+```bash
+fly secrets set FRONTEND_URL=https://mydomain.com
+fly deploy --strategy immediate
+```
 
 ---
-## 4. Launch services via render.yaml
-1. Render → New → Blueprint → point to your repo.
-2. It parses `render.yaml` and lists two services:
-  - `hospital-backend` (web)
-  - `hospital-frontend` (static)
-3. Before first deploy, set environment variables (see below). For secrets mark them as such.
-4. Click Apply.
-
-### 4.1 Backend environment variables
-Set on `hospital-backend`:
+## 5. Environment Variables Recap
+Backend (Fly secrets):
 ```
 NODE_ENV=production
 PORT=5000
-JWT_SECRET=<long-random>
-DATABASE_URL=<paste-from-render-postgres>
-FRONTEND_URL=https://<placeholder>
-```
-(You can leave placeholder; will tighten after frontend deploy.)
-
-### 4.2 Frontend environment variables
-On `hospital-frontend` static site:
-```
-VITE_API_URL=https://<backend-host>.onrender.com
-```
-The backend host appears after first backend deploy (format `<service-name>.onrender.com`). Update and redeploy frontend if needed.
-
----
-## 5. Deployment order
-1. First deploy triggers build for backend & frontend.
-2. Backend logs should show:
-```
-✅ Database connection established
-🚀 Server running on port 5000
-```
-3. Visit backend health:
-```
-curl https://<backend>.onrender.com/health
-```
-4. After backend URL is known, ensure frontend `VITE_API_URL` matches; if you deployed before setting it, add it and redeploy the static site (Render → Clear build cache & deploy if necessary).
-
----
-## 6. Seed data (optional)
-Render Web Service → Shell →
-```bash
-npm run seed
-```
-Check logs for confirmation (users/records created).
-
----
-## 7. Lock CORS
-Update backend env `FRONTEND_URL` to the exact static site origin (e.g. `https://hospital-frontend.onrender.com`). Redeploy backend (Render redeploy button).
-
----
-## 8. Functional verification
-Front to back:
-1. Open frontend URL → register / login.
-2. Create an event → refresh persists.
-3. Open a second browser window; drag/resize event → immediate update (WebSocket).
-4. Export CSV / ICS.
-5. (Optional) Trigger overbooking suggestions and accept/decline.
-
----
-## 9. Environment variable recap
-Backend:
-```
-NODE_ENV=production
-PORT=5000
-JWT_SECRET=...
+JWT_SECRET=********
 DATABASE_URL=postgres://...
-FRONTEND_URL=https://hospital-frontend.onrender.com
+FRONTEND_URL=https://your-frontend.vercel.app
 ```
-Frontend:
+Frontend (Vercel):
 ```
-VITE_API_URL=https://hospital-backend.onrender.com
-```
-
-Optional:
-```
-DB_SSL=true   # only if your DB enforces SSL and you want to ensure dialectOptions.ssl
+VITE_API_URL=https://hospital-backend-<yourid>.fly.dev
 ```
 
 ---
-## 10. Custom domains
-Add on each service → provide domain → add DNS (CNAME or A per Render instructions) → wait for certificate → update `FRONTEND_URL` and `VITE_API_URL` accordingly → redeploy frontend then backend.
+## 6. Functional Verification
+1. Visit frontend → register/login.
+2. Create & drag an event; open second browser window to verify realtime (Socket.IO via Fly).
+3. Export CSV/ICS.
+4. Overbooking suggestion flow (if triggered) works.
+5. 2FA enable / verify cycle works.
 
 ---
-## 11. Rollback
-Render → Service → Deploys → select a previous successful deploy → Rollback.
-Or revert git commit and push; blueprint redeploys automatically.
+## 7. Rolling Updates / Redeploy
+Code change:
+```bash
+git commit -am "feat: something" && git push
+cd backend && fly deploy
+```
+Frontend changes auto-deploy via Vercel on push (unless you disabled it). If backend URL changes (rare), update `VITE_API_URL` and redeploy front.
 
 ---
-## 12. Troubleshooting
-| Problem | Cause | Fix |
+## 8. Rollback
+Fly: `fly releases` → note version → `fly deploy --image <previous-image>` or `fly restore <version>` if enabled.
+Vercel: Go to Deployments tab → Promote previous deployment.
+
+---
+## 9. Troubleshooting
+| Symptom | Cause | Fix |
 |---------|-------|-----|
-| 404 API in browser | Wrong `VITE_API_URL` | Update env, redeploy frontend |
-| CORS error | `FRONTEND_URL` mismatch | Set exact origin + redeploy backend |
-| DB connect fail | Bad `DATABASE_URL` or DB sleeping | Re-copy connection string / wait for cold start |
-| WebSocket failing | Mixed URL or CORS | Confirm both URLs are https & origin matches |
-| Seed fails | Tables not synced yet | Wait for initial sync logs then rerun seed |
-
-Logs: Render → each service → Logs (filter for errors).
+| 502 on Fly | App boot slow / crash | `fly logs`; check DB URL & env vars |
+| CORS error | FRONTEND_URL mismatch | Reset secret & redeploy |
+| WebSocket not connecting | Mixed http/https or origin mismatch | Use https everywhere, correct FRONTEND_URL |
+| DB auth fail | Wrong password / host | Recopy Neon credentials |
+| Seed fails | DB not reachable yet | Wait, retry seed command |
 
 ---
-## 13. Security quick wins
-1. Keep `JWT_SECRET` long & private.
-2. Restrict origin (done via `FRONTEND_URL`).
-3. Consider adding rate limiting middleware later.
-4. Regular dependency updates.
+## 10. Security Quick Wins
+1. Keep JWT_SECRET long; rotate only with downtime.
+2. Add rate limiting (e.g. express-rate-limit) later.
+3. Use Fly private volumes only if you add persistence outside Postgres (not needed now).
 
 ---
-## 14. Final checklist
+## 11. Final Checklist
 ```
-[ ] Backend health OK
-[ ] DATABASE_URL valid
-[ ] Tables auto-created
-[ ] Seed run (optional)
-[ ] Frontend loads & talks to API
-[ ] Auth + 2FA flows work
-[ ] Real-time updates functioning
-[ ] Exports (CSV/ICS) download
-[ ] CORS locked to frontend
-[ ] (Optional) Custom domains working
+[ ] Fly deploy green
+[ ] /health returns ok
+[ ] Tables created
+[ ] Seed (optional) executed
+[ ] Frontend served on Vercel
+[ ] Realtime calendar updates
+[ ] Exports working
+[ ] CORS locked (correct FRONTEND_URL)
+[ ] Custom domains (optional) mapped
 ```
 
-Deployment on Render complete.
+## 12. Quick Command Reference (PowerShell friendly)
+```powershell
+cd backend
+fly auth login
+fly launch --name hospital-backend-<yourid> --no-deploy --copy-config
+fly secrets set NODE_ENV=production PORT=5000 JWT_SECRET=<rand> DATABASE_URL="postgres://..." FRONTEND_URL=https://<vercel-url>
+fly deploy
+curl https://hospital-backend-<yourid>.fly.dev/health
+fly ssh console -C "node seedDatabase.js"
+```
+
+Deployment complete (Fly.io + Vercel).

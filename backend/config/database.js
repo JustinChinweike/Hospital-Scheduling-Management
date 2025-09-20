@@ -5,13 +5,16 @@ import url from 'url';
 
 dotenv.config();
 
-// Support either a single DATABASE_URL or discrete DB_* vars
 let sequelize;
-if (process.env.DATABASE_URL) {
-  // Example: postgres://user:pass@host:5432/dbname
-  const parsed = url.parse(process.env.DATABASE_URL);
-  const [user, password] = (parsed.auth || '').split(':');
-  const dbName = (parsed.pathname || '').replace(/^\//, '');
+const hasUrl = !!process.env.DATABASE_URL;
+const hasDiscrete = !!(process.env.DB_HOST && process.env.DB_NAME && process.env.DB_USER && process.env.DB_PASSWORD);
+
+if (!hasUrl && !hasDiscrete) {
+  throw new Error('Database configuration missing: provide DATABASE_URL or DB_HOST/DB_NAME/DB_USER/DB_PASSWORD');
+}
+
+if (hasUrl) {
+  const parsed = url.parse(process.env.DATABASE_URL); // kept for possible future parsing needs
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
     protocol: 'postgres',

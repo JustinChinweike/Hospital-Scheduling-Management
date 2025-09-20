@@ -110,7 +110,7 @@ frontend/
 - DB connect issues: check `.env` and that Postgres is running
 
 ## Deployment
-See `DEPLOYMENT.md` for a full Render-only blueprint workflow using `render.yaml` (managed Postgres, backend web service, static frontend). Environment vars: backend needs `JWT_SECRET`, `DATABASE_URL`, `FRONTEND_URL`; frontend needs `VITE_API_URL`.
+See `DEPLOYMENT.md` for Fly.io (backend) + Neon Postgres + Vercel (frontend) steps. Backend needs `JWT_SECRET`, `DATABASE_URL` (or discrete DB_* vars), `FRONTEND_URL`. Frontend needs `VITE_API_URL` pointing to the Fly domain.
 
 ## Notes
 - This project is for learning and showcasing full‑stack skills.

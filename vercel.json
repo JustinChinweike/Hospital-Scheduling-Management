@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "projects": {},
+  "buildCommand": "npm run build --prefix frontend",
+  "installCommand": "npm install --prefix frontend",
+  "outputDirectory": "frontend/dist",
+  "framework": "vite",
+  "ignoreCommand": "echo Skipping root changes not affecting frontend"
+}

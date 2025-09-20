@@ -17,11 +17,14 @@ import { startMonitoring } from './utils/monitoringThread.js';
 
 dotenv.config();
 
-// Basic required env validation
-const requiredEnv = ['JWT_SECRET','DB_HOST','DB_PORT','DB_NAME','DB_USER','DB_PASSWORD'];
+// Environment validation: allow either discrete DB_* vars or a DATABASE_URL
+const requiredAlways = ['JWT_SECRET'];
+const hasDatabaseUrl = !!process.env.DATABASE_URL;
+const requiredDb = hasDatabaseUrl ? [] : ['DB_HOST','DB_PORT','DB_NAME','DB_USER','DB_PASSWORD'];
+const requiredEnv = [...requiredAlways, ...requiredDb];
 const missing = requiredEnv.filter(k => !process.env[k]);
 if (missing.length) {
-  console.warn(`⚠️  Missing environment variables: ${missing.join(', ')}. The server may fail to start.`);
+  console.warn(`⚠️  Missing environment variables: ${missing.join(', ')}. If you provided DATABASE_URL this may be fine.`);
 }
 
 const app = express();
@@ -69,6 +72,7 @@ io.on('connection', (socket) => {
   });
 });
 
+
 // Initialize database and start server
 const PORT = process.env.PORT || 5000;
 
@@ -78,7 +82,7 @@ const start = async () => {
     console.log('✅ Database connection established');
   await sequelize.sync({ alter: true });
   startMonitoring(io);
-    server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+  server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   } catch (err) {
     console.error('❌ Failed to start server (message):', err?.message || 'No message');
     console.error('❌ Full error object:', err);
