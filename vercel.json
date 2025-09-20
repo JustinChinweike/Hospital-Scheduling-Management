@@ -3,6 +3,5 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "outputDirectory": "dist",
-  "framework": "vite",
-  "ignoreCommand": "echo Skipping backend/docs changes"
+  "framework": "vite"
 }
