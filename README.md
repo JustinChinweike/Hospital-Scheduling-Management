@@ -219,14 +219,6 @@ See `DEPLOYMENT.md` for the exact step‑by‑step commands.
 | Large export slow | Too many rows | Adjust filters or raise `MAX_EXPORT_ROWS` |
 | 2FA fail | Desync clock | Re-sync device time or re-enroll |
 
----
-
-## Future Enhancements (Ideas)
-- Role granular permissions (nurses vs doctors vs admins)
-- iCal external feed subscription
-- Audit trail persistence & dashboard graphs
-- Rate limiting & IP reputation blocking
-- Dedicated migration system (replace sync/alter)
 
 ---
 
@@ -236,10 +228,7 @@ This repository is primarily a portfolio / learning build. If you spot an issue:
 2. Keep changes focused.
 3. Open a PR with a concise description and test notes.
 
----
 
-## License
-No explicit license; all rights reserved. Contact the author for usage beyond personal evaluation.
 
 ---
 
