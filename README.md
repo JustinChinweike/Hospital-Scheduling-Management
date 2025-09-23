@@ -219,17 +219,6 @@ See `DEPLOYMENT.md` for the exact step‑by‑step commands.
 | Large export slow | Too many rows | Adjust filters or raise `MAX_EXPORT_ROWS` |
 | 2FA fail | Desync clock | Re-sync device time or re-enroll |
 
-
----
-
-## Contributing
-This repository is primarily a portfolio / learning build. If you spot an issue:
-1. Fork & branch (`feat/…` or `fix/…`).
-2. Keep changes focused.
-3. Open a PR with a concise description and test notes.
-
-
-
 ---
 
 ## At a Glance
